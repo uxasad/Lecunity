@@ -46,7 +46,7 @@ test.describe('History Management', () => {
     ];
 
     await page.evaluate((history) => {
-      localStorage.setItem('talk2notes_history', JSON.stringify(history));
+      localStorage.setItem('lecunity_history', JSON.stringify(history));
     }, mockHistory);
 
     await page.reload();
@@ -91,7 +91,7 @@ test.describe('History Management', () => {
     ];
 
     await page.evaluate((history) => {
-      localStorage.setItem('talk2notes_history', JSON.stringify(history));
+      localStorage.setItem('lecunity_history', JSON.stringify(history));
     }, mockHistory);
 
     await page.reload();
@@ -105,7 +105,7 @@ test.describe('History Management', () => {
     // Find and click delete button
     const deleteButton = page
       .locator('button')
-      .filter({ hasText: /delete|hapus|×/i })
+      .filter({ hasText: /delete|hapus|Ã—/i })
       .first();
     const hasDeleteButton = await deleteButton.count();
 
@@ -168,7 +168,7 @@ test.describe('History Management', () => {
     ];
 
     await page.evaluate((history) => {
-      localStorage.setItem('talk2notes_history', JSON.stringify(history));
+      localStorage.setItem('lecunity_history', JSON.stringify(history));
     }, mockHistory);
 
     await page.reload();
@@ -230,7 +230,7 @@ test.describe('History Management', () => {
     }
 
     await page.evaluate((history) => {
-      localStorage.setItem('talk2notes_history', JSON.stringify(history));
+      localStorage.setItem('lecunity_history', JSON.stringify(history));
     }, mockHistory);
 
     await page.reload();

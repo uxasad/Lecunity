@@ -77,21 +77,22 @@ describe('AI prompts (ai-prompts.ts)', () => {
       expect(FORMAT_PROMPTS['roman-urdu']).toBeTruthy();
     });
 
-    it('English prompt preserves original Quran/Hadith content', () => {
-      expect(FORMAT_PROMPTS.english).toContain(
-        'Preserve original Arabic Quran and Hadith text completely.'
-      );
+    it('English prompt preserves original content without inventing information', () => {
+  expect(FORMAT_PROMPTS.english).toContain(
+    'Preserve the original meaning and context.'
+  );
 
-      expect(FORMAT_PROMPTS.english).toContain(
-        'Never invent Arabic quotations, Quranic verses, Hadith text, or references.'
-      );
-    });
+  expect(FORMAT_PROMPTS.english).toContain(
+    'Never invent information, facts, or references.'
+  );
+});
 
-    it('Urdu and Roman Urdu prompts preserve original Islamic references', () => {
-      expect(FORMAT_PROMPTS.urdu.length).toBeGreaterThan(100);
-      expect(FORMAT_PROMPTS['roman-urdu'].length).toBeGreaterThan(100);
-    });
-  });
+it('Urdu and Roman Urdu prompts contain general formatting instructions', () => {
+  expect(FORMAT_PROMPTS.urdu).toContain('اہم معلومات');
+  expect(FORMAT_PROMPTS['roman-urdu']).toContain(
+    'Never invent information, facts, or references.'
+  );
+});  });
 
   describe('buildSummarizationPrompt', () => {
     it('uses English as the output language when English is selected', () => {

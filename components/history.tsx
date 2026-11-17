@@ -22,13 +22,6 @@ function getLanguageLabel(language: string): string {
     case 'english':
       return '🇬🇧 English';
 
-    // Keep older saved history entries readable.
-    case 'id':
-      return '🇮🇩 Indonesian (Legacy)';
-
-    case 'ar':
-      return '🇸🇦 Arabic (Legacy)';
-
     default:
       return 'Unknown';
   }
@@ -47,7 +40,7 @@ export default function History({ onSelectItem }: HistoryProps) {
 
     // Listen for storage events to sync across tabs.
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'talk2notes_history') {
+      if (e.key === 'lecunity_history') {
         loadHistory();
       }
     };
@@ -83,7 +76,7 @@ export default function History({ onSelectItem }: HistoryProps) {
 
     // Save as last result for auto-load.
     try {
-      localStorage.setItem('talk2notes_last_result', JSON.stringify(item.notes));
+      localStorage.setItem('lecunity_last_result', JSON.stringify(item.notes));
     } catch (error) {
       console.error('Failed to save last result:', error);
     }
@@ -201,9 +194,9 @@ export default function History({ onSelectItem }: HistoryProps) {
                     </span>
                   </span>
 
-                  <span>•</span>
+                  <span>â€¢</span>
                   <span>{getLanguageLabel(item.language)}</span>
-                  <span>•</span>
+                  <span>â€¢</span>
                   <span>{formatTimestamp(item.timestamp)}</span>
                 </div>
 

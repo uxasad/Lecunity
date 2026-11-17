@@ -1,596 +1,174 @@
-# Talk2Notes 🎙️📝
+﻿# Lecunity
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/taufiqelrahman/talk2notes/ci.yml?branch=main)](https://github.com/uxasad/Lecunity/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+**Turn lectures into structured study notes with AI.**
 
-> Transform audio and video lectures into structured, comprehensive notes using AI
+Lecunity is an AI-powered learning application that transforms audio and video lectures into transcripts, summaries, and structured study notes.
 
-Talk2Notes is an open-source web application that automatically transcribes audio and video files and generates well-organized lecture notes complete with summaries, key concepts, definitions, example problems, interactive quizzes, and action items.
+The goal is to make educational content easier to understand, review, and study.
 
-🌐 **[Live Demo](https://talk2notes.fly.dev)** | 📖 **[Documentation](DOCS.md)** | ⚡ **[Quick Start](QUICKSTART.md)** | 🆓 **[Groq Setup](GROQ-SETUP.md)** | 🛡️ **[Rate Limits](RATE-LIMITS.md)** | 🔍 **[Troubleshooting](TROUBLESHOOTING.md)**
+## Features
 
-## ✨ Features
+- **Audio Upload:** Upload supported audio files for transcription.
+- **Video Upload:** Upload supported video files and extract their audio for processing.
+- **YouTube Support:** Process supported YouTube video URLs.
+- **AI Transcription:** Convert speech into text using AI.
+- **AI-Generated Notes:** Generate structured study notes from transcripts.
+- **Summarization:** Create concise summaries of lecture content.
+- **Language Options:** Generate content in English, Urdu (اردو), and Roman Urdu.
+- **Transcript and Notes:** View the processed transcript and generated study material.
+- **Browser History:** Access previously processed results stored in browser storage.
 
-- 💰 **Free to Use**: Default Groq integration with generous free tier (no credit card required!)
-- 🎵 **Multi-format Support**: Upload MP3, WAV, M4A, MP4, MKV, MOV, and more
-- 🎬 **YouTube Support**: Transcribe directly from YouTube URLs (requires yt-dlp)
-- 🔗 **Direct URL Support**: Download and transcribe media from any public URL
-- 🤖 **AI-Powered**: Transcription and summarization using Groq (default), OpenAI, Deepgram, or Anthropic
-- 🌍 **Multilingual Support**: Generate notes in English, Indonesian, or Arabic
-- 📝 **Formatted Transcript**: AI-formatted transcript with paragraphs, sections, and subheadings for easy reading
-- 📊 **Structured Output**: Organized notes with paragraphs, bullet points, concepts, and definitions
-- 🎯 **Interactive Quiz**: AI-generated multiple choice questions with instant feedback and explanations
-- 🎵 **Media Player**: Playback YouTube videos and direct media URLs while reading transcripts and notes
-- ✨ **Markdown Rendering**: Beautiful formatted display with support for bold, italic, lists, and code blocks
-- 💾 **Export Options**: Download notes as JSON or Markdown, transcript as TXT
-- 📋 **Copy to Clipboard**: Quick copy functionality for each tab
-- 💾 **Auto-save**: Results persist across page refreshes
-- 📜 **History Management**: Browse, search, and restore past transcriptions with individual delete
-- 🛡️ **Rate Limiting**: Smart limits (10/hour, 50/day) to stay within free tier while preventing abuse
-- ✂️ **Smart Cropping**: Automatically crops long transcripts to fit API limits (preserves sentence boundaries)
-- 🗜️ **Auto Compression**: Compresses large audio files (>24MB YouTube, >10MB uploads) for reliable transcription
-- ⚡ **Fast Processing**: Automatic audio extraction from video files using FFmpeg
-- 🎨 **Modern UI**: Clean, responsive interface built with Next.js and Tailwind CSS
-- 🕌 **Islamic Content**: Preserves dalil with Arabic text, harakat, transliteration, translations, and references
-- 🔒 **Secure**: File validation and size limits for safe uploads
-- 🛡️ **Error Handling**: Robust error boundaries for graceful error recovery
-- 🔐 **File Security**: Magic bytes validation to prevent malicious file uploads
+## Technology Stack
 
-## 🚀 Quick Start
+| Technology | Purpose |
+|---|---|
+| Next.js 15 | Application framework |
+| React 19 | User interface |
+| TypeScript | Type-safe development |
+| Tailwind CSS | Styling |
+| Groq API | AI transcription and summarization |
+| Whisper Large V3 | Speech-to-text transcription |
+| GPT-OSS-20B | AI summarization |
+| FFmpeg | Audio and video processing |
+| yt-dlp | YouTube media retrieval |
+| pnpm | Package management |
+
+## How It Works
+
+1. Upload an audio/video file or provide a supported YouTube URL.
+2. The application extracts audio when required.
+3. The audio is sent to the transcription model.
+4. The resulting transcript is processed by the AI summarization model.
+5. Lecunity generates structured study notes.
+6. Review the transcript and generated notes.
+
+## Supported Output Languages
+
+Lecunity currently provides three output language options:
+
+- **English:** Standard English.
+- **Urdu:** Urdu written in Urdu script.
+- **Roman Urdu:** Urdu written using the English alphabet.
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 18.18+ and pnpm 8+
-- FFmpeg installed on your system
-- yt-dlp (optional, for YouTube support)
-- Groq API key (free, no credit card!) or other AI provider
+Install the following tools:
 
-### Installation
+- Node.js 18.18 or later
+- pnpm
+- FFmpeg
+- yt-dlp (required for YouTube processing)
+- A Groq API key
 
-1. **Clone the repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/uxasad/Lecunity.git
-cd talk2notes
+cd Lecunity
 ```
 
-2. **Install dependencies**
+### 2. Install dependencies
 
 ```bash
 pnpm install
 ```
 
-3. **Get free API key**
+### 3. Configure environment variables
 
-Go to https://console.groq.com/keys and sign up (30 seconds, no credit card needed!)
-
-4. **Set up environment variables**
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your Groq API key:
+Create a `.env.local` file in the project root:
 
 ```env
 AI_PROVIDER=groq
-GROQ_API_KEY=gsk_your_key_here
-GROQ_TRANSCRIPTION_MODEL=whisper-large-v3
-GROQ_SUMMARIZATION_MODEL=openai/gpt-oss-20b
+GROQ_API_KEY=your_groq_api_key
 ```
 
-5. **Install FFmpeg** (if not already installed)
+Do not commit API keys or other secrets to GitHub.
 
-**macOS:**
-
-```bash
-brew install ffmpeg
-```
-
-**Ubuntu/Debian:**
-
-```bash
-sudo apt-get install ffmpeg
-```
-
-**Windows:**
-Download from [ffmpeg.org](https://ffmpeg.org/download.html)
-
-6. **Run the development server**
+### 4. Start the development server
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open:
 
-## 📖 Usage
-
-### Basic Usage
-
-**File Upload:**
-
-1. Visit the application homepage
-2. Click the **📁 Upload File** tab
-3. Select your preferred language (🇬🇧 English, 🇮🇩 Indonesian, or 🇸🇦 Arabic)
-4. Drag and drop or click to upload an audio/video file (MP3, WAV, M4A, MP4, MKV, MOV, etc.)
-5. Wait for processing (transcription + summarization)
-6. View your structured notes with beautiful markdown formatting
-7. Download notes as JSON/Markdown or transcript as TXT
-
-**YouTube URL:**
-
-1. Click the **▶️ YouTube** tab
-2. Select your preferred language
-3. Paste a YouTube video URL (supports youtube.com, youtu.be, etc.)
-4. Wait for processing (download → transcribe → summarize)
-5. View formatted notes and transcript
-6. **Note**: Videos >500MB or >24MB audio will be auto-compressed for reliable transcription
-
-**Direct URL:**
-
-1. Click the **🔗 URL** tab
-2. Select your preferred language
-3. Paste a direct URL to an audio/video file
-4. Wait for processing (download → transcribe → summarize)
-5. View formatted notes and transcript
-6. **Supported URLs**:
-   - Direct links to media files (MP3, MP4, WAV, etc.)
-   - Google Drive public links
-   - Dropbox public links
-   - Any publicly accessible media URL
-
-### Language Support
-
-**English (Default)**
-
-- Original transcription in English
-- Notes generated in English
-
-**Bahasa Indonesia**
-
-- Automatic translation of transcript to Indonesian
-- Notes generated in Indonesian
-- **Special handling for Islamic content:**
-  - Preserves Arabic text (Quranic verses, Hadith) with harakat
-  - Maintains format: "Arabic text (transliteration) - Indonesian translation"
-  - Keeps technical Islamic terms in original Arabic when commonly used
-
-**Arabic (العربية)**
-
-- Transcription in Arabic
-- Notes generated in Arabic
-- Preserves proper Arabic text formatting and diacritics
-
-### Transcript Formatting
-
-Talk2Notes automatically formats transcripts for better readability:
-
-- **AI-Powered Formatting**: Uses AI to restructure raw transcripts
-- **Paragraph Organization**: Groups sentences into coherent paragraphs (3-5 sentences each)
-- **Topic-Based Sections**: Adds `## Subheadings` based on content topics
-- **Dalil Preservation**: Maintains Islamic references with proper formatting:
-  ```
-  ---
-  (Arabic text with harakat)
-  (transliteration)
-  "Translation"
-  [QS. Surah: Verse] or [HR. Narrator]
-  ---
-  ```
-- **Smart Cropping**: For long videos, transcripts are cropped at ~9000 tokens (preserves sentence boundaries)
-- **No Content Loss**: All dalil, key points, and technical terms are preserved
-
-### History Management
-
-All transcriptions are automatically saved to your browser's history:
-
-- **Automatic Saving**: Every successful transcription is saved automatically (max 50 items)
-- **Quick Access**: Click "Show History" button to browse past transcriptions
-- **Smart Organization**: Sorted by timestamp (most recent first)
-- **Detailed Info**: View title, source (file/YouTube/URL), language, timestamp, and summary preview
-- **One-Click Restore**: Click any history item to reload its complete notes
-- **Individual Delete**: Remove specific items with the delete button (appears on hover)
-- **Clear All**: Remove all history with confirmation dialog
-- **Cross-Tab Sync**: History updates automatically across multiple browser tabs
-- **Relative Timestamps**: "2 hours ago", "3 days ago" for easy reference
-- **Source Icons**: Visual indicators for YouTube videos (▶️), URLs (🔗), and uploaded files (📁)
-- **Persistent Storage**: Stored locally in browser (localStorage)
-
-**Note**: History is stored locally in your browser. Clearing browser data will remove all history.
-
-### Media Playback
-
-For YouTube and direct URL sources, a compact floating media player is displayed while viewing your notes:
-
-- **YouTube Videos**: Embedded YouTube player with full controls and red theme
-- **Direct Media URLs**: HTML5 video/audio player with blue theme
-- **Compact Floating Design**: 320px wide player in picture-in-picture style
-- **Smart Sticky Behavior**:
-  - Automatically floats to top-right corner when scrolling past player
-  - Returns to normal position when scrolling back up
-  - Smooth transition animations
-- **Minimize/Expand**: Toggle player visibility to save screen space
-- **Colorful Themes**: Red background for YouTube, blue for media URLs
-- **Serverless-Friendly**: Streams from original source, no storage needed
-
-**Note**: Media playback is only available for YouTube and URL sources. File uploads are transcribed but not stored for playback (by design for serverless compatibility).
-
-### Viewing Notes
-
-The application provides multiple tabs for organized viewing:
-
-- **Summary**: Overview with key takeaways and bullet points
-- **Detailed Notes**: Full paragraphs with markdown formatting
-- **Key Concepts**: Important concepts with explanations
-- **Definitions**: Technical terms and their definitions
-- **Examples**: Sample problems with solutions
-- **Quiz**: Interactive multiple choice questions to test understanding with instant feedback
-- **Action Items**: Actionable tasks with checkboxes
-- **Full Transcript**: AI-formatted transcription with paragraphs, sections, and download option
-
-### Markdown Support
-
-All notes are rendered with beautiful markdown formatting:
-
-- **Bold** and _italic_ text
-- Bulleted and numbered lists
-- `Code blocks` and inline code
-- Links and references
-- Proper typography with Tailwind prose
-
-AI-generated notes can include markdown syntax which will be automatically rendered for better readability.
-
-### Export Options
-
-**Download Notes:**
-
-- **JSON**: Complete structured data with all fields
-- **Markdown**: Formatted document ready for sharing
-
-**Download Transcript:**
-
-- **TXT**: Plain text transcript in selected language
-
-### Supported Providers
-
-#### OpenAI (Default)
-
-```env
-AI_PROVIDER=openai
-OPENAI_API_KEY=sk-...
-OPENAI_TRANSCRIPTION_MODEL=whisper-1
-OPENAI_SUMMARIZATION_MODEL=gpt-4-turbo-preview
+```text
+http://localhost:3000
 ```
 
-#### Groq
+## Available Commands
 
-```env
-AI_PROVIDER=groq
-GROQ_API_KEY=gsk_...
-GROQ_MODEL=whisper-large-v3
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build the application |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run lint checks |
+| `pnpm type-check` | Check TypeScript types |
+| `pnpm test` | Run tests |
+| `pnpm test:run` | Run tests once |
+| `pnpm test:coverage` | Run tests with coverage |
+
+## Project Structure
+
+```text
+Lecunity/
+â”œâ”€â”€ actions/          # Server-side application actions
+â”œâ”€â”€ app/              # Next.js App Router
+â”œâ”€â”€ components/       # React components
+â”œâ”€â”€ lib/              # AI, media, and application utilities
+â”œâ”€â”€ public/            # Static assets
+â”œâ”€â”€ scripts/           # Utility scripts
+â”œâ”€â”€ tests/             # Automated tests
+â”œâ”€â”€ types/             # TypeScript definitions
+â”œâ”€â”€ utils/             # Shared utility functions
+â”œâ”€â”€ package.json
+â”œâ”€â”€ pnpm-lock.yaml
+â””â”€â”€ README.md
 ```
 
-#### Deepgram
-
-```env
-AI_PROVIDER=deepgram
-DEEPGRAM_API_KEY=...
-```
-
-#### Anthropic (for summarization)
+## Deployment
 
-```env
-AI_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-...
-ANTHROPIC_MODEL=claude-3-opus-20240229
-```
+Lecunity is being prepared for public deployment.
 
-## 🏗️ Architecture
+The application uses media-processing tools such as FFmpeg and yt-dlp. Deployment environments must support the required processing dependencies, execution time, file handling, and resource limits.
 
-### Project Structure
+**Important:** Standard serverless deployment environments may impose restrictions on media processing. Verify compatibility before relying on audio/video processing in production.
 
-```
-talk2notes/
-├── actions/              # Server Actions
-│   └── transcription.ts  # Main processing logic
-├── app/                  # Next.js App Router
-│   ├── api/             # API routes
-│   ├── layout.js        # Root layout
-│   ├── page.js          # Home page
-│   └── globals.css      # Global styles
-├── components/          # React components (JS)
-│   ├── upload.js        # Upload form
-│   ├── progress.js      # Progress indicator
-│   └── notes-display.js # Notes viewer
-├── lib/                 # Core libraries (TS)
-│   ├── ai.ts           # AI provider abstraction
-│   ├── ffmpeg.ts       # Audio extraction
-│   └── upload.ts       # File handling
-├── types/              # TypeScript definitions
-│   └── index.ts
-├── utils/              # Utility functions
-│   └── validateFile.ts
-└── public/             # Static assets
-```
+Docker configuration is also available for self-hosted deployment.
 
-### Server Actions Flow
+## Security
 
-```typescript
-// actions/transcription.ts
-export async function createTranscriptionMutation(formData: FormData) {
-  // 1. Validate file
-  // 2. Extract audio (if video)
-  // 3. Transcribe with AI
-  // 4. Summarize transcript
-  // 5. Return structured notes
-  // 6. Cleanup temp files
-}
-```
+- API keys should be stored in environment variables.
+- Never expose private API keys in client-side code.
+- Uploaded files should be validated before processing.
+- Temporary media files should be handled securely.
 
-### Mutation Pattern
+## Current Development Status
 
-All server actions follow a consistent mutation pattern:
+Lecunity is an actively developed project. Its initial focus is the core lecture-processing workflow:
 
-```typescript
-interface MutationResult<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-```
+**Audio/Video â†’ Transcription â†’ AI Summarization â†’ Study Notes**
 
-## 🔧 Configuration
+Additional learning features may be introduced in future development phases.
 
-### File Upload Limits
+## Contributing
 
-Edit `.env`:
+Contributions, suggestions, and bug reports are welcome.
 
-```env
-MAX_FILE_SIZE_MB=100
-ALLOWED_AUDIO_FORMATS=mp3,wav,m4a,aac,ogg,flac
-ALLOWED_VIDEO_FORMATS=mp4,mkv,mov,avi,webm
-```
+Please open an issue or submit a pull request through the GitHub repository.
 
-### AI Model Configuration
+## Repository
 
-Each provider has configurable models:
+- **GitHub:** https://github.com/uxasad/Lecunity
+- **Issues:** https://github.com/uxasad/Lecunity/issues
 
-```env
-# OpenAI
-OPENAI_TRANSCRIPTION_MODEL=whisper-1
-OPENAI_SUMMARIZATION_MODEL=gpt-4-turbo-preview
+## License
 
-# Groq
-GROQ_MODEL=whisper-large-v3
-```
-
-## 📝 API Reference
-
-### Server Actions
-
-#### `createTranscriptionMutation(formData: FormData)`
-
-Processes uploaded file and returns lecture notes.
-
-**Parameters:**
-
-- `formData`: FormData containing the uploaded file
-
-**Returns:**
-
-```typescript
-MutationResult<LectureNotes>;
-```
-
-#### `validateFileMutation(formData: FormData)`
-
-Validates uploaded file without processing.
-
-**Returns:**
-
-```typescript
-MutationResult<{ fileType: string; size: number }>;
-```
-
-### Core Functions
-
-#### `transcribeAudio(audioPath: string, options?: TranscriptionOptions)`
-
-Transcribes audio file using configured AI provider.
-
-#### `summarizeTranscript(transcript: string, filename: string, options?: SummarizationOptions)`
-
-Generates structured notes from transcript.
-
-#### `extractAudioFromVideo(videoPath: string)`
-
-Extracts audio from video file using FFmpeg.
-
-## 🧪 Development
-
-### Testing
-
-```bash
-# Run all tests
-pnpm test
-
-# Run tests in UI mode
-pnpm test:ui
-
-# Run tests once (CI mode)
-pnpm test:run
-
-# Generate coverage report
-pnpm test:coverage
-```
-
-See [TESTING.md](TESTING.md) for detailed testing documentation.
-
-### Type Checking
-
-```bash
-pnpm type-check
-```
-
-### Linting
-
-```bash
-pnpm lint
-```
-
-### Formatting
-
-```bash
-pnpm format
-pnpm format:check
-```
-
-### Building for Production
-
-```bash
-pnpm build
-pnpm start
-```
-
-## 🚢 Deployment
-
-### Fly.io (Recommended - Free Tier) ⭐
-
-**Full features supported**: Video, YouTube, Large files, FFmpeg, yt-dlp
-
-See complete guide: **[FLY-DEPLOY.md](FLY-DEPLOY.md)**
-
-Quick deploy:
-
-```bash
-# Install Fly CLI
-brew install flyctl
-
-# Login
-flyctl auth login
-
-# Deploy
-flyctl launch
-flyctl secrets set GROQ_API_KEY=your_key_here
-flyctl deploy
-```
-
-**Free tier**: 3 shared-cpu VMs with 256MB RAM (sufficient for most usage)
-
-### Vercel (Limited Features)
-
-⚠️ **Limitations**: No FFmpeg, No yt-dlp, 4.5MB max body size, 10-60s timeout
-
-Only suitable for:
-
-- Audio files only (<4MB)
-- No video processing
-- No YouTube support
-
-1. Push your code to GitHub
-2. Import project in Vercel
-3. Add environment variables
-4. Deploy
-
-### Railway (~$5-10/month)
-
-**Full features supported**: All features work perfectly
-
-1. Connect GitHub repository
-2. Add environment variables
-3. Deploy automatically
-
-### Docker (Self-hosted)
-
-```bash
-docker build -t talk2notes .
-docker run -p 3000:3000 --env-file .env talk2notes
-```
-
-### Environment Variables for Production
-
-Required secrets:
-
-- `AI_PROVIDER` (groq, openai, deepgram, anthropic)
-- `GROQ_API_KEY` or `OPENAI_API_KEY`
-- `GROQ_TRANSCRIPTION_MODEL` (whisper-large-v3)
-- `GROQ_SUMMARIZATION_MODEL` (openai/gpt-oss-20b)
-- `NODE_ENV=production`
-
-Optional:
-
-- `MAX_FILE_SIZE_MB` (default: 100)
-- `ALLOWED_AUDIO_FORMATS`
-- `ALLOWED_VIDEO_FORMATS`
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/amazing-feature`
-3. Commit changes: `git commit -m 'feat: add amazing feature'`
-4. Push to branch: `git push origin feat/amazing-feature`
-5. Open a Pull Request
-
-### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `docs:` - Documentation changes
-- `style:` - Code style changes (formatting, etc.)
-- `refactor:` - Code refactoring
-- `test:` - Adding or updating tests
-- `chore:` - Maintenance tasks
-
-## 📚 Documentation
-
-- [Quick Start](QUICKSTART.md) - Get started in 5 minutes
-- [Setup Guide](SETUP.md) - Detailed installation, configuration, and pnpm guide
-- [CLI Reference](CLI-REFERENCE.md) - Complete command-line reference
-- [Architecture](ARCHITECTURE.md) - System design and structure
-- [Project Structure](PROJECT-STRUCTURE.md) - Code organization
-- [URL Source Feature](URL-SOURCE.md) - Using direct URLs for media
-- [Contributing](CONTRIBUTING.md) - How to contribute
-
-## �📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - React framework
-- [OpenAI](https://openai.com/) - Whisper and GPT models
-- [FFmpeg](https://ffmpeg.org/) - Audio/video processing
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [Formidable](https://github.com/node-formidable/formidable) - File uploads
-- [pnpm](https://pnpm.io/) - Fast, disk space efficient package manager
-
-## 📞 Support
-
-- 📫 Issues: [GitHub Issues](https://github.com/uxasad/Lecunity/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/uxasad/Lecunity/discussions)
-- 📖 Docs: [Architecture Documentation](ARCHITECTURE.md)
-
-## 🗺️ Roadmap
-
-- [ ] Real-time progress tracking
-- [ ] Batch processing
-- [ ] Custom prompt templates
-- [ ] Multi-language support
-- [ ] Note collaboration features
-- [ ] Cloud storage integration
-- [ ] Mobile app
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ---
 
-**Made with ❤️ by the Talk2Notes community**
+**Lecunity â€” Learn better, understand deeper.**

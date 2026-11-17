@@ -1,297 +1,149 @@
 # File Upload Security
 
-This document describes the comprehensive file upload security implementation in Talk2Notes.
+This document describes the file validation and security checks implemented in Lecunity.
 
 ## Overview
 
-File upload security uses a multi-layered approach to validate and sanitize uploaded files, protecting against malicious content and file tampering.
+Lecunity uses multiple validation checks to reduce the risk of invalid, mismatched, or suspicious media uploads.
 
-## Security Layers
+The implementation includes:
 
-### Layer 1: MIME Type Validation
+- MIME type and file extension validation
+- File size restrictions
+- File signature (magic byte) validation
+- File integrity checks
+- Basic suspicious-content pattern scanning
+- Generated filenames for stored uploads
+- Cleanup of files that fail security validation
 
-**Location**: `utils/validateFile.ts`
+**Important:** These checks provide basic upload protection. They are not a replacement for antivirus software or a comprehensive malware scanner.
 
-Basic validation that checks if the uploaded file's MIME type matches allowed audio/video formats.
+## 1. MIME Type and Extension Validation
 
-- Allowed audio MIME types: `audio/mpeg`, `audio/wav`, `audio/m4a`, etc.
-- Allowed video MIME types: `video/mp4`, `video/quicktime`, `video/x-matroska`, etc.
+**Location:** `utils/validateFile.ts`
 
-**Limitation**: MIME types can be easily spoofed by attackers.
+The `validateFile()` function checks whether the uploaded file has:
 
-### Layer 2: File Extension Validation
+- An allowed audio or video extension
+- An allowed MIME type
+- A file size within the configured limit
 
-**Location**: `utils/validateFile.ts`
+Supported formats include common audio and video types such as MP3, WAV, M4A, AAC, OGG, FLAC, MP4, MKV, MOV, AVI, and WebM.
 
-Validates that the file extension matches the expected format.
+MIME types and extensions alone are not reliable proof of file content because they can be manipulated.
 
-- Allowed extensions: `.mp3`, `.wav`, `.m4a`, `.mp4`, `.mkv`, `.mov`, etc.
+## 2. File Size Restrictions
 
-**Limitation**: Extensions can be renamed by users.
+**Location:** `utils/validateFile.ts`
 
-### Layer 3: File Size Limits
+The general maximum file size is controlled by `MAX_FILE_SIZE_MB`.
 
-**Location**: `utils/validateFile.ts`
+- Default in the validation utility: 50 MB, based on the rate limiter configuration.
+- Example environment configuration: 100 MB.
+- Audio files also have an additional 25 MB validation limit.
+- Video files have an additional 500 MB validation limit.
 
-Enforces strict file size limits to prevent DoS attacks and resource exhaustion.
+The effective limit depends on the configured general file-size limit and the additional format-specific checks.
 
-- Audio files: Max 25MB (OpenAI Whisper limit)
-- Video files: Max 500MB
-- Auto-compression for files > 10MB
+## 3. File Signature Validation
 
-### Layer 4: Magic Bytes Validation (File Signature)
+**Location:** `lib/file-security.ts`
 
-**Location**: `lib/file-security.ts`
+The `validateFileSignature()` function reads the first 12 bytes of a file and compares them against known signatures.
 
-**This is the critical security layer** that validates actual file content by reading the file's binary signature (magic bytes).
+This helps identify whether the actual file content matches a supported media format.
 
-#### How It Works
+The implementation includes signatures for selected MP3, WAV, FLAC, OGG, M4A, MP4, MKV, MOV, and AVI formats.
 
-1. **Read File Header**: Opens the file and reads the first 12 bytes
-2. **Signature Matching**: Compares bytes against known audio/video signatures
-3. **Type Detection**: Returns the actual file type based on content
+The signature list is limited and does not cover every possible variation of these formats.
 
-#### Supported Signatures
+## 4. File Integrity Validation
 
-**Audio Formats**:
+**Location:** `lib/file-security.ts`
 
-```
-MP3:  FF FB (MPEG-1 Layer 3)
-      FF F3 (MPEG-1 Layer 3)
-      49 44 33 (ID3v2 tag)
-WAV:  52 49 46 46 (RIFF)
-FLAC: 66 4C 61 43 (fLaC)
-OGG:  4F 67 67 53 (OggS)
-M4A:  66 74 79 70 4D 34 41 (ftypM4A at offset 4)
-```
+The `validateFileIntegrity()` function compares:
 
-**Video Formats**:
+- The detected file extension
+- The detected MIME type
+- The extension and MIME type claimed by the upload
 
-```
-MP4:  66 74 79 70 69 73 6F 6D (ftypisom at offset 4)
-MKV:  1A 45 DF A3 (Matroska)
-MOV:  66 74 79 70 71 74 (ftypqt at offset 4)
-AVI:  52 49 46 46 (RIFF)
-```
+If the detected content does not match the claimed file type, validation fails.
 
-#### Protection Against
+This helps detect file-type mismatches and some forms of extension or MIME-type manipulation.
 
-- ✅ File extension spoofing (e.g., `.exe` renamed to `.mp3`)
-- ✅ MIME type manipulation
-- ✅ Malicious executable files disguised as media
-- ✅ Corrupted or tampered files
+## 5. Basic Suspicious-Content Scanning
 
-### Layer 5: Content Scanning
+**Location:** `lib/file-security.ts`
 
-**Location**: `lib/file-security.ts`
+The `scanFileContent()` function performs a limited scan of the beginning of the file.
 
-Scans file content for suspicious patterns that shouldn't appear in audio/video files.
+It checks for:
 
-#### Detected Patterns
+- Suspiciously small files
+- Selected executable signatures and patterns
+- Shell script indicators
+- HTML or JavaScript script tags
+- Selected command and scripting patterns
 
-- Executable headers (PE, ELF)
-- Shell scripts (`#!/bin`)
-- Script tags (`<script>`)
-- JavaScript `eval()`
-- PHP `base64_decode`
-- Windows commands (`cmd.exe`, `powershell`)
+The scan examines only the first 1 KB of file content. It does not inspect the entire file and cannot reliably detect all malicious content.
 
-#### File Integrity Check
+## 6. Upload Security Workflow
 
-Validates that the detected file type matches the claimed MIME type and extension.
+**Locations:** `lib/upload.ts`, `lib/file-security.ts`
 
-**Example**:
+The implementation has two upload paths:
 
-- File claims: `.mp3` / `audio/mpeg`
-- Actual content: MP4 video
-- Result: ❌ Rejected (type mismatch)
+### `parseFormData()`
 
-## Implementation
+This path:
 
-### File Upload Flow
+1. Parses multipart form data using Formidable.
+2. Stores uploaded files in the uploads directory.
+3. Checks MIME type, extension, and file size using `validateFile()`.
+4. Removes a file when this validation fails.
+5. Returns the validated upload information.
 
-```typescript
-// 1. User uploads file
-const file = await saveUploadedFile(uploadedFile);
+This path does not currently call `validateFileSecurely()`.
 
-// 2. Basic validation (MIME, extension, size)
-const validation = validateFile(file.type, file.size, file.name);
+### `saveUploadedFile()`
 
-// 3. Security validation (magic bytes + content scan)
-const securityCheck = await validateFileSecurely(file.filepath, file.type, file.name);
+This path:
 
-// 4. If validation fails, delete file and reject
-if (!securityCheck.valid) {
-  await cleanupUploadedFile(file.filepath);
-  throw new Error(securityCheck.error);
-}
+1. Reads the uploaded file into a buffer.
+2. Generates a unique filename.
+3. Saves the file in the uploads directory.
+4. Runs `validateFileSecurely()`.
+5. Deletes the file if security validation fails.
+6. Logs security warnings when present.
+7. Returns the uploaded file information if validation succeeds.
 
-// 5. File is safe to process
-```
+The comprehensive validation function combines signature validation, integrity checks, and suspicious-content scanning.
 
-### API Usage
+## 7. Filename Handling and Cleanup
 
-#### Validate File Signature
+**Location:** `lib/upload.ts`
 
-```typescript
-import { validateFileSignature } from '@/lib/file-security';
+Uploaded files are stored using generated filenames rather than their original filenames.
 
-const result = await validateFileSignature('/path/to/file.mp3');
+When security validation fails in `saveUploadedFile()`, the uploaded file is deleted through `cleanupUploadedFile()`.
 
-if (result.valid) {
-  console.log(`Detected: ${result.detectedType} (${result.detectedMime})`);
-} else {
-  console.error(result.error);
-}
-```
+The original filename is retained as metadata for application use.
 
-#### Validate File Integrity
+## 8. Current Limitations
 
-```typescript
-import { validateFileIntegrity } from '@/lib/file-security';
+The current implementation has the following limitations:
 
-const result = await validateFileIntegrity(
-  '/path/to/file.mp3',
-  'audio/mpeg', // claimed MIME
-  'mp3' // claimed extension
-);
+- Signature validation supports only a selected list of media signatures.
+- The suspicious-content scanner checks only the first 1 KB.
+- Pattern-based scanning is not equivalent to antivirus or malware detection.
+- Some media formats and signature variations may not be recognized.
+- `parseFormData()` does not currently run the comprehensive security validation function.
+- The implementation does not provide a guarantee that every malicious file will be detected.
 
-if (!result.valid) {
-  console.error('File tampering detected:', result.error);
-}
-```
+## 9. Relevant Source Files
 
-#### Comprehensive Security Check
-
-```typescript
-import { validateFileSecurely } from '@/lib/file-security';
-
-const result = await validateFileSecurely(filepath, mimeType, filename);
-
-if (!result.valid) {
-  throw new Error(result.error);
-}
-
-if (result.warnings) {
-  console.warn('Security warnings:', result.warnings);
-}
-```
-
-## Security Benefits
-
-### Before (Vulnerable)
-
-```typescript
-// Only checking MIME type and extension
-// ❌ Attacker can rename virus.exe to virus.mp3
-// ❌ File upload succeeds
-// ❌ Server processes malicious file
-```
-
-### After (Secure)
-
-```typescript
-// Checking actual file content with magic bytes
-// ✅ File claims to be MP3
-// ✅ Read first bytes: 4D 5A (EXE header)
-// ✅ Signature mismatch detected
-// ✅ File deleted immediately
-// ✅ Upload rejected with clear error
-```
-
-## Testing
-
-Run the test suite to verify magic bytes validation:
-
-```bash
-# Install tsx if not available
-pnpm add -D tsx
-
-# Run tests
-npx tsx lib/__tests__/file-security.test.ts
-```
-
-### Test Cases
-
-1. ✅ Valid MP3 file (ID3v2 header)
-2. ✅ Valid WAV file (RIFF header)
-3. ✅ Invalid file (random bytes)
-4. ✅ Type mismatch (MP3 bytes with .wav extension)
-5. ✅ Suspicious content (executable pattern)
-
-## Error Messages
-
-### File Signature Mismatch
-
-```
-File signature does not match any supported audio/video format
-```
-
-**Cause**: File content doesn't match known audio/video signatures.
-
-### File Content Mismatch
-
-```
-File content mismatch: File appears to be exe (application/x-msdownload)
-but claimed as mp3 (audio/mpeg). Possible file tampering or corruption.
-```
-
-**Cause**: Actual file type differs from claimed type.
-
-### Security Scan Failed
-
-```
-File failed security scan: File contains suspicious executable patterns
-```
-
-**Cause**: File contains patterns commonly found in malicious files.
-
-## Performance Impact
-
-- **Minimal**: Only reads first 12 bytes for signature validation
-- **Fast**: Signature check takes < 1ms
-- **Async**: Non-blocking file operations
-- **Memory efficient**: Small buffer for header reading
-
-## Limitations
-
-### Not a Virus Scanner
-
-This implementation does NOT replace antivirus software. It:
-
-- ✅ Detects file type mismatches
-- ✅ Identifies obvious malicious patterns
-- ❌ Does NOT detect all viruses/malware
-- ❌ Does NOT perform deep content analysis
-
-### Recommended for Production
-
-For production deployments, consider:
-
-1. **ClamAV Integration**: Add virus scanning
-2. **Sandboxed Processing**: Process files in isolated environment
-3. **Cloud Security Services**: AWS GuardDuty, VirusTotal API
-4. **Rate Limiting**: Prevent abuse (already implemented)
-5. **File Quarantine**: Temporary isolation before processing
-
-## Files
-
-- `lib/file-security.ts` - Core security validation logic
-- `utils/validateFile.ts` - Basic file validation
-- `lib/upload.ts` - File upload handler with security integration
-- `lib/__tests__/file-security.test.ts` - Test suite
-
-## References
-
-- [List of File Signatures (Wikipedia)](https://en.wikipedia.org/wiki/List_of_file_signatures)
-- [OWASP File Upload Security](https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload)
-- [Magic Bytes Reference](https://www.garykessler.net/library/file_sigs.html)
-
-## Changelog
-
-**v2.5.0** - Added magic bytes validation and content scanning
-
-- Implemented file signature validation
-- Added content pattern scanning
-- Enhanced upload security with multi-layer validation
-- Created comprehensive test suite
+| File | Responsibility |
+|---|---|
+| `utils/validateFile.ts` | MIME type, extension, and file-size validation |
+| `lib/file-security.ts` | Signature validation, integrity checks, and basic content scanning |
+| `lib/upload.ts` | Upload parsing, file storage, security validation, and cleanup |

@@ -55,7 +55,7 @@ test.describe('Homepage', () => {
     // Ensure we're on the app origin before touching localStorage
     await page.goto('/');
     await page.evaluate((notes) => {
-      localStorage.setItem('talk2notes_last_result', JSON.stringify(notes));
+      localStorage.setItem('lecunity_last_result', JSON.stringify(notes));
     }, mockNotes);
 
     await page.reload();

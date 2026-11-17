@@ -54,7 +54,7 @@ export async function createTranscriptionMutation(
       })
     );
 
-    // Check hourly rate limit (10 transcriptions per hour).
+    // Check hourly rate limit (5 transcriptions per hour).
     const hourlyAllowed = rateLimiter.check(
       `transcription:hourly:${clientId}`,
       RATE_LIMITS.TRANSCRIPTION.MAX_REQUESTS,
@@ -72,11 +72,11 @@ export async function createTranscriptionMutation(
 
       return {
         success: false,
-        error: `Rate limit exceeded. You can only transcribe ${RATE_LIMITS.TRANSCRIPTION.MAX_REQUESTS} files per hour on the free tier. Please try again in ${resetIn}.`,
+        error: `Rate limit exceeded. You can only transcribe ${RATE_LIMITS.TRANSCRIPTION.MAX_REQUESTS} files per hour for this client IP. Please try again in ${resetIn}.`,
       };
     }
 
-    // Check daily rate limit (50 transcriptions per day).
+    // Check daily rate limit (20 transcriptions per rolling 24 hours).
     const dailyAllowed = rateLimiter.check(
       `transcription:daily:${clientId}`,
       RATE_LIMITS.DAILY.MAX_TRANSCRIPTIONS,
@@ -94,7 +94,7 @@ export async function createTranscriptionMutation(
 
       return {
         success: false,
-        error: `Daily limit exceeded. You can transcribe up to ${RATE_LIMITS.DAILY.MAX_TRANSCRIPTIONS} files per day on the free tier. Resets in ${resetIn}.`,
+        error: `Daily limit exceeded. You can transcribe up to ${RATE_LIMITS.DAILY.MAX_TRANSCRIPTIONS} files per rolling 24 hours for this client IP. Resets in ${resetIn}.`,
       };
     }
 

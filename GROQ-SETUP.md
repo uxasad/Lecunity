@@ -1,184 +1,101 @@
-# 🆓 Setup Groq (Gratis!)
+# Groq Transcription Setup
 
-Groq lebih cepat dari OpenAI dan punya free tier yang generous!
+This guide explains how to configure Groq for audio transcription in Lecunity. Lecunity can use a separate AI provider for text generation, such as Gemini.
 
-## 🚀 Quick Setup (3 menit)
+## 1. Create API keys
 
-### 1. Daftar Groq (Gratis)
+You may need these API keys depending on your selected providers:
 
-```bash
-open https://console.groq.com
-```
+- **Groq:** Create an API key at https://console.groq.com/keys
+- **Google Gemini:** Create an API key at https://aistudio.google.com/apikey
 
-- Sign up pakai Google/GitHub
-- Instant approval, no credit card needed!
+Keep your API keys private. Never commit them to GitHub or expose them in client-side code.
 
-### 2. Get API Key
+## 2. Configure environment variables
 
-```bash
-open https://console.groq.com/keys
-```
+Open your `.env.local` file in the project root and configure the providers:
 
-- Click "Create API Key"
-- Copy key yang mulai dengan `gsk_...`
-
-### 3. Configure Project
-
-Kalau belum punya `.env.local`, copy dulu:
-
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local`:
-
-```bash
-# Change provider to groq
+```env
+# Transcription
 AI_PROVIDER=groq
-
-# Add your Groq API key
-GROQ_API_KEY=gsk_your_key_here
-
-# Transcription model (Whisper for audio-to-text)
+GROQ_API_KEY=your_groq_api_key_here
 GROQ_TRANSCRIPTION_MODEL=whisper-large-v3
 
-# Summarization model (LLM for generating notes)
-GROQ_SUMMARIZATION_MODEL=openai/gpt-oss-20b
-
-# Comment out or remove OpenAI key
-# OPENAI_API_KEY=...
+# Text generation and summarization
+AI_SUMMARIZATION_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_SUMMARIZATION_MODEL=gemini-3.6-flash
 ```
 
-### 4. Restart Server
+Replace the placeholder values with your own API keys.
 
-```bash
-# Stop server (Ctrl+C)
+Do not share your `.env.local` file or upload it to GitHub.
+
+## 3. Provider configuration
+
+Lecunity uses two separate provider settings:
+
+| Variable | Purpose |
+|---|---|
+| `AI_PROVIDER` | Audio transcription |
+| `AI_SUMMARIZATION_PROVIDER` | Summarization, translation and text formatting |
+
+This separation allows Groq to handle transcription while Gemini handles text generation.
+
+If `AI_SUMMARIZATION_PROVIDER` is not set, the application falls back to `AI_PROVIDER`, then to its configured default.
+
+## 4. Supported output languages
+
+Lecunity currently provides three output language options:
+
+- English
+- Urdu (اردو)
+- Roman Urdu
+
+The selected language controls the generated content. It does not require the original audio to be in that language.
+
+## 5. Run and test the application
+
+After saving your environment variables:
+
+```powershell
 pnpm dev
 ```
 
-## ✅ Test
+Then:
 
-Upload audio/video file dan cek console logs:
+1. Open `http://localhost:3000`.
+2. Upload a supported audio or video file.
+3. Start transcription.
+4. Check the generated transcript and notes.
+5. Test the available output language options.
 
-```
-[AI] Using Groq for transcription
-[AI] Model: whisper-large-v3
-[Transcription] ✓ Success!
-```
+## 6. Troubleshooting
 
-## 📊 Groq Free Tier Limits
+**Missing Groq API key**
 
-- **Whisper transcription**:
-  - 14,400 requests/day
-  - ~240 hours audio/day
-  - Good enough untuk development!
+Check that `GROQ_API_KEY` is present in `.env.local`.
 
-- **Speed**: 2-3x lebih cepat dari OpenAI
-- **Quality**: Sama bagusnya (pakai Whisper Large V3)
+**Missing Gemini API key**
 
-## 🆚 OpenAI vs Groq
+If Gemini is selected for summarization, check that `GEMINI_API_KEY` is configured.
 
-| Feature         | OpenAI              | Groq              |
-| --------------- | ------------------- | ----------------- |
-| **Free Tier**   | ❌ No (need credit) | ✅ Yes (generous) |
-| **Speed**       | Normal              | ⚡ Very Fast      |
-| **Quality**     | Excellent           | Excellent         |
-| **Cost** (paid) | $0.006/min          | Free/Cheap        |
+**Provider changes are not taking effect**
 
-## 🔧 Troubleshooting
+Restart the development server after changing environment variables.
 
-### Error: "model does not support chat completions"
+**Transcription fails**
 
-**Fixed!** Pastikan config di `.env.local` pakai 2 model berbeda:
+Check the API key, selected model, supported file format, file size and provider response.
 
-```bash
-GROQ_TRANSCRIPTION_MODEL=whisper-large-v3     # For audio transcription
-GROQ_SUMMARIZATION_MODEL=openai/gpt-oss-20b  # For note generation
-```
+**Summarization fails**
 
-Jangan pakai `GROQ_MODEL` (deprecated).
+Check the selected summarization provider, its API key and the configured model.
 
-### Error: "Invalid API Key"
+## 7. Official documentation
 
-- Check key starts with `gsk_`
-- No spaces before/after key
-- Regenerate key if needed
-
-### Error: "Rate Limit"
-
-Free tier limits:
-
-- Wait 1 minute
-- Or upgrade to paid tier ($$$)
-
-### Still using OpenAI?
-
-Check `.env.local`:
-
-```bash
-# Must be 'groq', not 'openai'
-AI_PROVIDER=groq
-```
-
-Restart server after changing!
-
-## 🌍 Language Support
-
-Groq mendukung fitur bilingual Talk2Notes:
-
-**English (Default):**
-
-- Transcription dan notes dalam bahasa Inggris
-
-**Indonesian:**
-
-- Automatic translation transcript ke Bahasa Indonesia
-- Notes di-generate dalam Bahasa Indonesia
-- **Perfect untuk konten Islami:**
-  - Preserves teks Arab (ayat Quran, Hadits) dengan harakat
-  - Format: "teks Arab (transliterasi) - terjemahan Indonesia"
-  - Istilah teknis Islam tetap dalam bahasa Arab
-
-Pilih language di UI sebelum upload file!
-
-## 💡 Pro Tips
-
-1. **Groq untuk transcription** (gratis & cepat)
-2. **OpenAI untuk summarization** (lebih bagus)
-
-   ```bash
-   AI_PROVIDER=groq  # untuk Whisper
-   GROQ_API_KEY=...
-
-   # Masih bisa pakai OpenAI untuk summary (optional)
-   OPENAI_API_KEY=...
-   OPENAI_SUMMARIZATION_MODEL=gpt-4-turbo-preview
-   ```
-
-3. **File size limit**: Sama seperti OpenAI (25MB audio)
-4. **Pakai mode Indonesian**: Bagus untuk kajian/ceramah Islam dengan konten Arab
-
-## 📚 References
-
-- Groq Console: https://console.groq.com
-- Groq Docs: https://console.groq.com/docs
-- Pricing: https://wow.groq.com/pricing (free tier included!)
-
----
-
-**Ready?** Copy command di bawah:
-
-```bash
-# 1. Open Groq console
-open https://console.groq.com/keys
-
-# 2. After getting API key, edit config
-nano .env.local
-# Set: AI_PROVIDER=groq
-# Set: GROQ_API_KEY=gsk_...
-
-# 3. Restart
-pnpm dev
-```
-
-Selesai! 🎉
+- Groq API documentation: https://console.groq.com/docs
+- Groq API keys: https://console.groq.com/keys
+- Google AI Studio: https://aistudio.google.com/
+- Gemini API documentation: https://ai.google.dev/gemini-api/docs
+- Gemini API keys: https://aistudio.google.com/apikey

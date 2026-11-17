@@ -2,16 +2,16 @@
 
 set -e
 
-echo "🎙️ Talk2Notes Setup Script"
+echo "ðŸŽ™ï¸ Lecunity Setup Script"
 echo "=========================="
 echo ""
 
 check_command() {
     if command -v $1 &> /dev/null; then
-        echo "✅ $1 is installed"
+        echo "âœ… $1 is installed"
         return 0
     else
-        echo "❌ $1 is not installed"
+        echo "âŒ $1 is not installed"
         return 1
     fi
 }
@@ -52,13 +52,13 @@ fi
 echo ""
 
 if ! $NODE_OK || ! $NPM_OK; then
-    echo "❌ Node.js 18+ and npm 9+ are required"
+    echo "âŒ Node.js 18+ and npm 9+ are required"
     echo "   Install from: https://nodejs.org/"
     exit 1
 fi
 
 if ! $FFMPEG_OK; then
-    echo "⚠️  FFmpeg is not installed"
+    echo "âš ï¸  FFmpeg is not installed"
     echo "   macOS: brew install ffmpeg"
     echo "   Ubuntu: sudo apt-get install ffmpeg"
     echo ""
@@ -81,9 +81,9 @@ echo ""
 
 if [ ! -f .env ]; then
     cp .env.example .env
-    echo "✅ Created .env file from .env.example"
+    echo "âœ… Created .env file from .env.example"
     echo ""
-    echo "⚠️  IMPORTANT: You need to add your API key!"
+    echo "âš ï¸  IMPORTANT: You need to add your API key!"
     echo ""
     echo "   1. Open .env in your editor"
     echo "   2. Set AI_PROVIDER (default: openai)"
@@ -100,7 +100,7 @@ if [ ! -f .env ]; then
         ${EDITOR:-nano} .env
     fi
 else
-    echo "ℹ️  .env file already exists"
+    echo "â„¹ï¸  .env file already exists"
 fi
 
 echo ""
@@ -108,15 +108,15 @@ echo "Step 4: Verifying configuration..."
 echo ""
 
 if grep -q "your_.*_api_key_here" .env 2>/dev/null; then
-    echo "⚠️  API key not configured in .env"
+    echo "âš ï¸  API key not configured in .env"
     echo "   Please edit .env and add your API key"
 else
-    echo "✅ Environment variables configured"
+    echo "âœ… Environment variables configured"
 fi
 
 echo ""
 echo "=========================="
-echo "✅ Setup complete!"
+echo "âœ… Setup complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Verify your API key in .env"
@@ -128,4 +128,4 @@ echo "  - Setup guide: SETUP.md"
 echo "  - Architecture: ARCHITECTURE.md"
 echo "  - Contributing: CONTRIBUTING.md"
 echo ""
-echo "Happy coding! 🚀"
+echo "Happy coding! ðŸš€"

@@ -1,97 +1,127 @@
-# URL Source Feature
+# URL Source Support
 
 ## Overview
 
-Talk2Notes now supports three input methods for audio/video content:
+Lecunity provides three ways to submit lecture content:
 
-1. **File Upload** - Upload audio/video files directly from your device
-2. **YouTube URL** - Download and transcribe YouTube videos
-3. **Media URL** - Download and transcribe media from any direct URL
+1. File Upload
+2. YouTube URL
+3. Direct Media URL
 
-## Media URL Feature
+Both URL input methods download audio to the server before sending it through the transcription and note-generation pipeline.
 
-### What is it?
+## 1. YouTube URL
 
-The Media URL feature allows you to transcribe audio/video content directly from URLs without downloading them to your device first.
+Lecunity uses `yt-dlp` to download audio from supported YouTube video URLs.
 
-### Supported URLs
+### Recognized URL domains
 
-- Direct links to audio files (MP3, WAV, M4A, AAC, OGG, FLAC)
-- Direct links to video files (MP4, MKV, MOV, AVI, WEBM)
-- Google Drive public links (must be set to "Anyone with the link")
-- Dropbox public links
-- Any publicly accessible media URL
+- `youtube.com`
+- `www.youtube.com`
+- `m.youtube.com`
+- `youtu.be`
 
-### How to Use
+### Processing
 
-1. Click the "🔗 URL" tab on the upload form
-2. Paste the direct URL to your media file
-3. Select your preferred output language (English, Bahasa Indonesia, or Arabic)
-4. Click "Generate Lecture Notes"
+1. The user submits a YouTube video URL.
+2. Lecunity validates the URL domain.
+3. `yt-dlp` downloads and extracts the audio.
+4. Audio is converted to MP3.
+5. Audio larger than 24 MB is passed through the compression process.
+6. The transcription service generates a transcript.
+7. Lecunity translates and formats the transcript into the selected output language.
+8. The AI generates structured lecture notes.
 
-### Requirements
+### Download configuration
 
-- The URL must be a **direct download link** to the media file
-- The file must be publicly accessible (no authentication required)
-- Maximum file size: 50MB (larger files will be compressed)
+- Audio extraction: enabled
+- Audio format: MP3
+- Playlist downloads: disabled
+- Maximum source download size: 500 MB
+- Download command timeout: 5 minutes
 
-### Examples of Valid URLs
+**Requirement:** `yt-dlp` and FFmpeg must be available in the server environment.
 
-```
-https://example.com/audio/lecture.mp3
-https://drive.google.com/uc?id=FILE_ID&export=download
-https://www.dropbox.com/s/XXXXX/audio.mp3?dl=1
-```
+## 2. Direct Media URL
 
-### Technical Details
+Lecunity also accepts direct HTTP or HTTPS URLs.
 
-- Audio is automatically downloaded to the server
-- Large files (>24MB) are automatically compressed for optimal transcription
-- The same AI transcription and summarization pipeline is used as file uploads
-- Temporary files are cleaned up after processing
+### Supported URL format
 
-### Rate Limits
+The backend accepts URLs using:
 
-The same rate limits apply as file uploads:
+- HTTP
+- HTTPS
 
-- **Hourly limit**: 10 transcriptions per hour
-- **Daily limit**: 50 transcriptions per day
+The URL should point directly to a publicly accessible audio or video file.
 
-### Troubleshooting
+Examples of URL formats:
 
-#### "Failed to download media" Error
+- `https://example.com/audio/lecture.mp3`
+- `https://example.com/videos/lecture.mp4`
 
-- Verify the URL is publicly accessible
-- Check if the URL is a direct link to the media file
-- Ensure the URL is not behind authentication
-- Try opening the URL in a browser to confirm it downloads
+These are examples of URL formats, not verified external media sources.
 
-#### "Invalid media URL" Error
+### Processing
 
-- Ensure the URL starts with `http://` or `https://`
-- Check for typos in the URL
-- Verify the URL format is correct
+1. The user submits a direct media URL.
+2. Lecunity checks that the URL uses HTTP or HTTPS.
+3. The server downloads the response into its uploads directory.
+4. Empty downloaded files are rejected.
+5. Audio larger than 24 MB is passed through the compression process.
+6. The transcription service generates a transcript.
+7. Lecunity translates and formats the transcript into the selected output language.
+8. The AI generates structured lecture notes.
+9. Downloaded and compressed files are cleaned up after successful processing or errors.
 
-## Implementation Files
+### Current limitations
 
-### Frontend
+- The URL must provide a directly downloadable media response.
+- The downloader does not extract media from arbitrary streaming websites.
+- Google Drive and Dropbox integration is not implemented.
+- Authentication-required URLs are not supported by a dedicated authentication mechanism.
+- The downloader does not currently enforce a maximum downloaded-file size.
+- The server does not currently verify that every HTTP response contains valid audio or video.
+- HTTP redirects with status codes 301 and 302 are handled.
 
-- [`components/upload.tsx`](components/upload.tsx) - Upload form with URL input
-- [`components/history.tsx`](components/history.tsx) - History display with URL source indicator
+## 3. Output Languages
 
-### Backend
+Lecunity currently provides three output language options:
 
-- [`lib/media-downloader.ts`](lib/media-downloader.ts) - URL download utility
-- [`actions/transcription.ts`](actions/transcription.ts) - Transcription action with URL support
+- English
+- Urdu (اردو)
+- Roman Urdu
 
-### Types
+The original speech language is automatically detected during transcription. The selected language controls the generated transcript formatting and lecture notes.
 
-- [`types/index.ts`](types/index.ts) - Type definitions with `mediaUrl` support
+## 4. Technical Implementation
 
-## Future Enhancements
+| Component | Responsibility |
+|---|---|
+| `components/upload.tsx` | URL input interface and form submission |
+| `actions/transcription.ts` | URL validation, download orchestration, transcription and note generation |
+| `lib/media-downloader.ts` | Direct HTTP/HTTPS media downloading |
+| `lib/youtube.ts` | YouTube URL validation and yt-dlp downloading |
+| `lib/ffmpeg.ts` | Audio extraction, compression and temporary-file handling |
+| `lib/ai.ts` | AI transcription and text generation |
 
-- [ ] Support for authentication (API keys, OAuth)
-- [ ] Better error messages with URL validation
-- [ ] Support for playlist URLs
-- [ ] Support for streaming URLs
-- [ ] Progress indicator for large downloads
+## 5. Requirements and Security Considerations
+
+- `yt-dlp` is required for YouTube downloads.
+- FFmpeg is required for audio processing.
+- The server must be able to access the submitted media URL.
+- Direct URL downloading should be protected against Server-Side Request Forgery (SSRF).
+- Production deployment should enforce download-size limits and validate media content.
+- Downloaded files should be cleaned up after processing.
+
+## 6. Future Improvements
+
+Potential improvements include:
+
+- Support for additional media platforms through dedicated integrations.
+- Safer URL destination validation and SSRF protection.
+- Download-size enforcement.
+- Media content-type and file validation.
+- Better download progress and error reporting.
+
+These improvements are not represented as currently implemented features.

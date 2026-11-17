@@ -68,7 +68,7 @@ async function downloadFile(url: string, outputPath: string): Promise<void> {
       url,
       {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Talk2Notes/1.0)',
+          'User-Agent': 'Mozilla/5.0 (compatible; Lecunity/1.0)',
         },
       },
       (response) => {

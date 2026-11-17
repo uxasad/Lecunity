@@ -1,355 +1,355 @@
-# CLI Reference & Quick Commands
+# Lecunity CLI Reference
 
-Complete command-line reference for Talk2Notes with quick cheatsheet.
+This guide contains the commands used to install, configure, develop, test, and maintain Lecunity.
 
-## 🚀 Quick Start Commands
+## 1. Prerequisites
+
+Install the following tools before starting:
+
+- **Node.js:** Compatible with the installed Next.js version.
+- **pnpm:** Package manager.
+- **Git:** Version control.
+- **FFmpeg and FFprobe:** Required for audio and video processing.
+- **yt-dlp:** Required for YouTube media downloading.
+
+Verify installations:
 
 ```bash
-# Clone and start
+node --version
+pnpm --version
+git --version
+ffmpeg -version
+ffprobe -version
+yt-dlp --version
+```
+
+## 2. Clone and Install
+
+```bash
 git clone https://github.com/uxasad/Lecunity.git
-cd talk2notes
+cd Lecunity
 pnpm install
-cp .env.example .env
-# Edit .env with your API keys
+```
+
+Create your environment file.
+
+**Windows PowerShell:**
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+**macOS/Linux:**
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` and add your API keys.
+
+Start the development server:
+
+```bash
 pnpm dev
 ```
 
-## 📦 Package Manager Commands
+Open http://localhost:3000.
 
-```bash
-pnpm install              # Install dependencies
-pnpm dev                  # Start dev server (http://localhost:3000)
-pnpm build                # Build for production
-pnpm start                # Start production server
-pnpm lint                 # Run ESLint
-pnpm type-check           # TypeScript type checking
-pnpm format               # Format with Prettier
-pnpm format:check         # Check formatting
-```
+## 3. Environment Configuration
 
-## 🔧 Setup & Configuration
-
-### FFmpeg Installation
-
-```bash
-# macOS
-brew install ffmpeg
-
-# Ubuntu/Debian
-sudo apt-get update && sudo apt-get install -y ffmpeg
-
-# Windows
-# Download from https://ffmpeg.org/download.html
-
-# Verify installation
-ffmpeg -version
-```
-
-### Environment Configuration
-
-**Minimum .env:**
+### AI Provider Settings
 
 ```env
-AI_PROVIDER=openai
-OPENAI_API_KEY=sk-your-key-here
+AI_PROVIDER=groq
+AI_SUMMARIZATION_PROVIDER=gemini
+
+GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
+
+GROQ_TRANSCRIPTION_MODEL=whisper-large-v3
+GROQ_SUMMARIZATION_MODEL=openai/gpt-oss-20b
+GEMINI_SUMMARIZATION_MODEL=gemini-3.6-flash
 ```
 
-**Full configuration:**
+`AI_PROVIDER` controls speech transcription.
+
+`AI_SUMMARIZATION_PROVIDER` controls translation, formatting, and summarization. If it is not configured, the application falls back to `AI_PROVIDER`.
+
+### Alternative Providers
+
+The application also supports these providers:
+
+| Provider | Purpose |
+|---|---|
+| OpenAI | Transcription and text generation |
+| Groq | Transcription and text generation |
+| Deepgram | Transcription |
+| Gemini | Text generation |
+| Anthropic | Text generation and summarization |
+
+Configure the relevant provider API key and model settings when using an alternative provider.
+
+### Upload Settings
 
 ```env
-# AI Provider (openai|groq|deepgram|anthropic)
-AI_PROVIDER=openai
-
-# API Keys (use provider-specific key)
-OPENAI_API_KEY=sk-xxxxx
-GROQ_API_KEY=gsk-xxxxx
-DEEPGRAM_API_KEY=xxxxx
-ANTHROPIC_API_KEY=sk-ant-xxxxx
-
-# Upload Configuration
 MAX_FILE_SIZE_MB=100
 ALLOWED_AUDIO_FORMATS=mp3,wav,m4a,aac,ogg,flac
 ALLOWED_VIDEO_FORMATS=mp4,mkv,mov,avi,webm
-
-# FFmpeg (optional, auto-detected)
-FFMPEG_PATH=/usr/local/bin/ffmpeg
-FFPROBE_PATH=/usr/local/bin/ffprobe
-
-# Model Configuration (optional)
-OPENAI_TRANSCRIPTION_MODEL=whisper-1
-OPENAI_SUMMARIZATION_MODEL=gpt-4-turbo-preview
-GROQ_MODEL=mixtral-8x7b-32768
-ANTHROPIC_MODEL=claude-3-opus-20240229
 ```
 
-## 🐳 Docker Commands
+### Application Settings
 
-```bash
-# Build image
-docker build -t talk2notes .
-
-# Run container
-docker run -p 3000:3000 --env-file .env talk2notes
-
-# Using docker-compose
-docker-compose up                  # Start services
-docker-compose up -d               # Start in background
-docker-compose down                # Stop services
-docker-compose logs -f             # Follow logs
-docker-compose restart             # Restart services
+```env
+NODE_ENV=development
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-## 🛠️ Development Workflow
+### FFmpeg Configuration
 
-### Branch Management
+FFmpeg and FFprobe are automatically detected when possible.
 
-```bash
-git checkout -b feat/feature-name   # Create feature branch
-git checkout -b fix/bug-name        # Create bugfix branch
-git checkout main                   # Switch to main
-git pull origin main                # Update main
+If automatic detection fails, configure their paths:
+
+```env
+FFMPEG_PATH=/path/to/ffmpeg
+FFPROBE_PATH=/path/to/ffprobe
 ```
 
-### Code Quality Checks
+Windows example:
 
-```bash
-# Run all checks before commit
-pnpm lint && pnpm type-check && pnpm format:check
-
-# Auto-fix issues
-pnpm lint --fix
-pnpm format
+```env
+FFMPEG_PATH=C:/ffmpeg/bin/ffmpeg.exe
+FFPROBE_PATH=C:/ffmpeg/bin/ffprobe.exe
 ```
 
-### Commit Guidelines
+Never commit `.env.local` or other files containing API keys.
+
+## 4. Development Commands
+
+| Command | Purpose |
+|---|---|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build production application |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
+| `pnpm type-check` | Check TypeScript types |
+| `pnpm format` | Format supported files |
+| `pnpm format:check` | Check formatting |
+
+## 5. Testing Commands
+
+### Unit and Integration Tests
 
 ```bash
-# Follow conventional commits
-git commit -m "feat: add new feature"
-git commit -m "fix: resolve bug"
-git commit -m "docs: update readme"
-git commit -m "style: format code"
-git commit -m "refactor: restructure code"
-git commit -m "test: add tests"
-git commit -m "chore: update dependencies"
+pnpm test
 ```
 
-## 🚢 Deployment
-
-### Vercel (Recommended)
+Run all tests once:
 
 ```bash
-# Install Vercel CLI
-pnpm add -g vercel
-
-# Deploy
-vercel
-
-# Production deployment
-vercel --prod
+pnpm test:run
 ```
 
-### Manual Production Deployment
+Open the Vitest interface:
 
 ```bash
-# Build application
-pnpm build
-
-# Start production server
-pnpm start
-
-# Or use PM2 for process management
-pnpm add -g pm2
-pm2 start npm --name "talk2notes" -- start
-pm2 save
-pm2 startup
+pnpm test:ui
 ```
 
-### Docker Production
+Generate test coverage:
 
 ```bash
-docker-compose -f docker-compose.yml up -d
+pnpm test:coverage
 ```
 
-## 🔍 Debugging & Troubleshooting
-
-### Check Prerequisites
+### End-to-End Tests
 
 ```bash
-node --version          # Should be 18+
-pnpm --version          # Should be 8+
-ffmpeg -version         # Should be installed
+pnpm test:e2e
 ```
 
-### Port Already in Use
+Other available commands:
 
 ```bash
-# Find process using port 3000
-lsof -ti:3000
-
-# Kill process
-lsof -ti:3000 | xargs kill -9
-
-# Or use different port
-PORT=3001 pnpm dev
+pnpm test:e2e:ui
+pnpm test:e2e:headed
+pnpm test:e2e:chromium
+pnpm test:e2e:debug
 ```
 
-### Clean Installation
+## 6. FFmpeg Utility Commands
+
+Check FFmpeg availability:
 
 ```bash
-# Remove all generated files
-rm -rf node_modules .next pnpm-lock.yaml
-
-# Fresh install
-pnpm install
+pnpm check:ffmpeg
 ```
 
-### Clear Cache
+Search for FFmpeg installations:
 
 ```bash
-# Clear Next.js cache
-rm -rf .next
-
-# Clear pnpm cache
-pnpm store prune
+pnpm find:ffmpeg
 ```
 
-### Debug Build Issues
+These scripts use Bash, so Windows users should run them through a compatible Bash environment.
+
+## 7. Production Build
+
+Check types and run tests before building:
 
 ```bash
-# Verbose build
-pnpm build --debug
-
-# Check TypeScript errors
 pnpm type-check
+pnpm test:run
+pnpm build
+```
 
-# Check for dependency issues
+Start the production server:
+
+```bash
+pnpm start
+```
+
+The default local production address is http://localhost:3000.
+
+## 8. Docker Commands
+
+If Docker is installed and the project Docker configuration is available:
+
+Build the image:
+
+```bash
+docker build -t lecunity .
+```
+
+Run the container:
+
+```bash
+docker run -p 3000:3000 --env-file .env.local lecunity
+```
+
+For Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+Stop Compose services:
+
+```bash
+docker compose down
+```
+
+Media processing requires compatible FFmpeg and yt-dlp binaries in the runtime environment. A successful Docker image build alone does not verify those dependencies.
+
+## 9. Git Workflow
+
+Create a feature branch:
+
+```bash
+git checkout -b feat/feature-name
+```
+
+Create a bug-fix branch:
+
+```bash
+git checkout -b fix/bug-name
+```
+
+Check repository status:
+
+```bash
+git status
+```
+
+Review recent commits:
+
+```bash
+git log --oneline -5
+```
+
+Stage and commit changes:
+
+```bash
+git add .
+git commit -m "feat: describe your change"
+```
+
+Push changes:
+
+```bash
+git push origin main
+```
+
+## 10. Troubleshooting Commands
+
+Check installed dependencies:
+
+```bash
 pnpm list
 ```
 
-## 🧪 Testing & Validation
-
-### File Upload Testing
+Check TypeScript errors:
 
 ```bash
-# Test with curl
-curl -X POST http://localhost:3000/api/upload \
-  -F "file=@test-audio.mp3"
+pnpm type-check
 ```
 
-### API Health Check
+Remove generated Next.js build output:
+
+**Windows PowerShell:**
+
+```powershell
+Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue
+```
+
+**macOS/Linux:**
 
 ```bash
-curl http://localhost:3000/api/health
+rm -rf .next
 ```
 
-## 📊 Monitoring & Logs
-
-### View Application Logs
+Reinstall dependencies:
 
 ```bash
-# Development logs
-pnpm dev
-
-# Production logs with PM2
-pm2 logs talk2notes
-pm2 monit
+pnpm install
 ```
 
-### Docker Logs
+Check whether the required media tools are available:
 
 ```bash
-docker-compose logs -f            # All services
-docker-compose logs -f app        # Specific service
-docker logs <container-id>        # Specific container
+ffmpeg -version
+ffprobe -version
+yt-dlp --version
 ```
 
-## 🔐 Security Commands
+If media processing fails, verify the API keys, provider configuration, file format, upload size, and media-processing dependencies.
 
-### Update Dependencies
+## 11. Deployment Notes
 
-```bash
-# Check for updates
-pnpm outdated
+Lecunity includes configuration prepared for Vercel deployment.
 
-# Update all dependencies
-pnpm update
+Before deploying:
 
-# Update specific package
-pnpm update <package-name>
-```
+1. Connect the GitHub repository to Vercel.
+2. Configure the required AI provider environment variables.
+3. Verify the production build.
+4. Check whether the hosting runtime supports the required FFmpeg and yt-dlp processing workflows.
+5. Test actual audio, video, and URL processing after deployment.
 
-### Security Audit
+Deployment configuration does not guarantee that every media-processing feature will work in every serverless environment.
 
-```bash
-# Check for vulnerabilities
-pnpm audit
+## Related Documentation
 
-# Fix vulnerabilities
-pnpm audit --fix
-```
-
-## 📁 File Management
-
-### Clean Temporary Files
-
-```bash
-# Remove uploads directory
-rm -rf uploads/*.tmp
-
-# Clean all temporary files
-find . -name "*.tmp" -type f -delete
-```
-
-### Backup Data
-
-```bash
-# Backup .env
-cp .env .env.backup
-
-# Backup uploads
-tar -czf uploads-backup.tar.gz uploads/
-```
-
-## 🎯 Performance Optimization
-
-### Build Analysis
-
-```bash
-# Analyze bundle size
-ANALYZE=true pnpm build
-```
-
-### Production Optimization
-
-```bash
-# Enable production optimizations
-NODE_ENV=production pnpm build
-NODE_ENV=production pnpm start
-```
-
-## 🆘 Quick Troubleshooting Guide
-
-| Issue            | Solution                                                                  |
-| ---------------- | ------------------------------------------------------------------------- |
-| FFmpeg not found | `brew install ffmpeg` (macOS) or `sudo apt install ffmpeg` (Linux)        |
-| Port in use      | `lsof -ti:3000 \| xargs kill -9`                                          |
-| Build fails      | `rm -rf .next node_modules && pnpm install`                               |
-| Type errors      | `pnpm type-check` to see details                                          |
-| Lint errors      | `pnpm lint --fix` to auto-fix                                             |
-| Upload fails     | Check MAX_FILE_SIZE_MB in .env                                            |
-| API key invalid  | Verify key in .env file                                                   |
-| Out of memory    | Increase Node memory: `NODE_OPTIONS=--max-old-space-size=4096 pnpm build` |
-
-## 📚 Related Documentation
-
-- [README.md](README.md) - Project overview
-- [SETUP.md](SETUP.md) - Detailed setup guide with pnpm
-- [QUICKSTART.md](QUICKSTART.md) - 5-minute quick start
-- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md) - Code organization
+- [README](README.md)
+- [Quick Start](QUICKSTART.md)
+- [Setup Guide](SETUP.md)
+- [Architecture](ARCHITECTURE.md)
+- [Project Structure](PROJECT-STRUCTURE.md)
+- [Testing](TESTING.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
+- [File Security](FILE-SECURITY.md)
+- [Rate Limits](RATE-LIMITS.md)
 
 ---
 
-**Need help?** Open an issue: https://github.com/uxasad/Lecunity/issues
+Repository: https://github.com/uxasad/Lecunity

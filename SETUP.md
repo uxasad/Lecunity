@@ -1,447 +1,359 @@
-# Talk2Notes Setup Guide
+# Lecunity Setup Guide
 
-This guide will help you set up Talk2Notes on your local machine or server.
+This guide explains how to configure and run Lecunity locally.
 
-## Prerequisites Checklist
+## 1. Prerequisites
 
-Before you begin, ensure you have:
+Install the following tools:
 
-- [ ] Node.js 18.18.0 or higher (required for Next.js 15)
-- [ ] pnpm 8.0.0 or higher
-- [ ] FFmpeg installed
-- [ ] API key from your chosen AI provider
-- [ ] Git installed
+- **Node.js** — a version compatible with Next.js 15
+- **pnpm** — package manager
+- **Git** — to clone the repository
+- **FFmpeg and FFprobe** — required for audio/video processing
+- **yt-dlp** — required for YouTube media downloading
+- **AI provider API keys** — required for transcription and AI-generated notes
 
-## Step-by-Step Installation
-
-### 1. Install Node.js and pnpm
-
-**Check if already installed:**
+Verify your installations:
 
 ```bash
-node --version  # Should be 18.0.0+
-pnpm --version   # Should be 9.0.0+
+node --version
+pnpm --version
+git --version
+ffmpeg -version
+ffprobe -version
+yt-dlp --version
 ```
 
-**If not installed:**
+## 2. Install System Dependencies
 
-**macOS (using Homebrew):**
+### FFmpeg and FFprobe
 
-```bash
-brew install node
-```
+**Windows**
 
-**Ubuntu/Debian:**
+1. Install FFmpeg using a trusted Windows package manager or download a build from [ffmpeg.org](https://ffmpeg.org/download.html).
+2. Add the FFmpeg `bin` directory to your system PATH.
+3. Verify that both `ffmpeg` and `ffprobe` are accessible from the terminal.
 
-```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-**Windows:**
-Download from [nodejs.org](https://nodejs.org/)
-
-### 2. Install FFmpeg
-
-**macOS:**
+**macOS**
 
 ```bash
 brew install ffmpeg
 ```
 
-**Ubuntu/Debian:**
+**Ubuntu/Debian**
 
 ```bash
 sudo apt update
 sudo apt install ffmpeg
 ```
 
-**Windows:**
-
-1. Download from [ffmpeg.org](https://ffmpeg.org/download.html)
-2. Extract and add to PATH
-
-**Verify installation:**
+Verify:
 
 ```bash
 ffmpeg -version
 ffprobe -version
 ```
 
-**Quick check** (after cloning the repo):
+### yt-dlp
 
-```bash
-pnpm check:ffmpeg
+YouTube URL processing requires yt-dlp.
+
+**Windows**
+
+```powershell
+winget install yt-dlp
 ```
 
-This will verify FFmpeg is properly installed and show the detected paths.
-
-### 3. Install yt-dlp (Optional - For YouTube Support)
-
-**Note**: YouTube videos will be automatically compressed if >24MB and transcripts will be cropped if >10K tokens (Groq limit).
-
-If you want to transcribe YouTube videos directly from URL:
-
-**macOS:**
+**macOS**
 
 ```bash
 brew install yt-dlp
 ```
 
-**Ubuntu/Debian:**
+**Ubuntu/Debian**
 
 ```bash
 sudo apt install yt-dlp
-# or
-pip install yt-dlp
 ```
 
-**Windows:**
+Alternatively, install yt-dlp using its official installation instructions:
 
-```bash
-winget install yt-dlp
-# or
-pip install yt-dlp
-```
+https://github.com/yt-dlp/yt-dlp#installation
 
-**Verify installation:**
+Verify:
 
 ```bash
 yt-dlp --version
 ```
 
-### 4. Get API Keys
+## 3. Get AI Provider API Keys
 
-You need an API key from one of these providers:
+Lecunity uses separate configuration options for speech transcription and text generation.
 
-#### OpenAI (Recommended)
+### Groq
 
-1. Go to [platform.openai.com](https://platform.openai.com/)
-2. Sign up or log in
-3. Navigate to API keys section
-4. Create new secret key
-5. Copy the key (starts with `sk-`)
+1. Visit [Groq Console](https://console.groq.com/).
+2. Sign in or create an account.
+3. Generate an API key.
+4. Store the key securely.
 
-#### Groq (Alternative)
+Groq can be used for transcription and text generation.
 
-1. Go to [console.groq.com](https://console.groq.com/)
-2. Sign up or log in
-3. Generate API key
-4. Copy the key (starts with `gsk_`)
+### Gemini
 
-#### Deepgram (Alternative)
+1. Visit [Google AI Studio](https://aistudio.google.com/).
+2. Generate a Gemini API key.
+3. Store the key securely.
 
-1. Go to [deepgram.com](https://deepgram.com/)
-2. Create account
-3. Get API key from console
+Gemini is the configured default for text generation.
 
-### 5. Clone the Repository
+### Other supported providers
+
+Depending on the task, the application also supports:
+
+- OpenAI
+- Deepgram
+- Anthropic
+
+Check `.env.example` and the provider configuration before switching providers. Not every provider supports every operation.
+
+## 4. Clone the Repository
 
 ```bash
 git clone https://github.com/uxasad/Lecunity.git
-cd talk2notes
+cd Lecunity
 ```
 
-### 6. Install Dependencies
+## 5. Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-This will install all required packages including:
+## 6. Configure Environment Variables
 
-- Next.js
-- React
-- OpenAI SDK
-- FFmpeg wrapper
-- Formidable
-- Zod
-- And development tools
+Create your local environment file.
 
-### 7. Configure Environment Variables
+**Windows PowerShell**
 
-**Copy the example file:**
-
-```bash
-cp .env.example .env
+```powershell
+Copy-Item .env.example .env.local
 ```
 
-**Edit `.env` with your values:**
+**macOS/Linux**
 
 ```bash
-# Use your preferred editor
-nano .env
-# or
-vim .env
-# or
-code .env
+cp .env.example .env.local
 ```
 
-**Minimum required configuration (Groq - Free!):**
+Open `.env.local` and add your API keys.
+
+### Default configuration
 
 ```env
 AI_PROVIDER=groq
-GROQ_API_KEY=gsk_your_actual_key_here
-GROQ_TRANSCRIPTION_MODEL=whisper-large-v3
-GROQ_SUMMARIZATION_MODEL=openai/gpt-oss-20b
-```
+AI_SUMMARIZATION_PROVIDER=gemini
 
-**Alternative: OpenAI (Paid):**
-
-```env
-AI_PROVIDER=openai
-OPENAI_API_KEY=sk-your-actual-key-here
-OPENAI_TRANSCRIPTION_MODEL=whisper-1
-OPENAI_SUMMARIZATION_MODEL=gpt-4-turbo-preview
-```
-
-**Full configuration example:**
-
-```env
-# AI Service Configuration (Default: Groq - Free!)
-AI_PROVIDER=groq
-
-# Groq Configuration
-GROQ_API_KEY=gsk_your_actual_key_here
+GROQ_API_KEY=your_groq_api_key
 GROQ_TRANSCRIPTION_MODEL=whisper-large-v3
 GROQ_SUMMARIZATION_MODEL=openai/gpt-oss-20b
 
-# Upload Configuration
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_SUMMARIZATION_MODEL=gemini-3.6-flash
+```
+
+The configuration above uses Groq for transcription and Gemini for summarization, translation, and formatting.
+
+### Upload configuration
+
+```env
 MAX_FILE_SIZE_MB=100
 ALLOWED_AUDIO_FORMATS=mp3,wav,m4a,aac,ogg,flac
 ALLOWED_VIDEO_FORMATS=mp4,mkv,mov,avi,webm
+```
 
-# Application Configuration
+### Application configuration
+
+```env
 NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# FFmpeg Configuration (optional, auto-detected)
-FFMPEG_PATH=/usr/local/bin/ffmpeg
-FFPROBE_PATH=/usr/local/bin/ffprobe
 ```
 
-### 8. Run the Development Server
+### Optional FFmpeg paths
 
-```bash
-pnpm dev
-```
-
-The application will start at [http://localhost:3000](http://localhost:3000)
-
-### 9. Verify Installation
-
-1. Open your browser to `http://localhost:3000`
-2. You should see the Talk2Notes interface
-3. Try uploading a small audio file (test with a short recording)
-4. Check that processing completes successfully
-
-## Troubleshooting
-
-### FFmpeg Not Found
-
-**Error:** `Cannot find ffmpeg`
-
-**Solution:**
-
-```bash
-# macOS
-brew install ffmpeg
-
-# Ubuntu
-sudo apt-get install ffmpeg
-
-# Verify
-which ffmpeg
-```
-
-If installed but not found, set the path in `.env`:
+If FFmpeg is not detected automatically, configure its executable paths:
 
 ```env
 FFMPEG_PATH=/path/to/ffmpeg
 FFPROBE_PATH=/path/to/ffprobe
 ```
 
-### API Key Issues
+On Windows, use the actual paths to your installed executables.
 
-**Error:** `API key not configured`
+**Important:** Never commit `.env.local` or expose API keys in frontend code, screenshots, or public repositories.
 
-**Solution:**
+## 7. Run Lecunity Locally
 
-1. Check `.env` file exists
-2. Verify API key is correct
-3. Ensure no extra spaces in `.env`
-4. Restart the dev server after changes
-
-### Port Already in Use
-
-**Error:** `Port 3000 is already in use`
-
-**Solution:**
+Start the development server:
 
 ```bash
-# Use a different port
-PORT=3001 pnpm dev
-
-# Or kill the process using port 3000
-lsof -ti:3000 | xargs kill
+pnpm dev
 ```
 
-### File Upload Fails
+Open:
 
-**Error:** `File upload failed` or `File too large`
+http://localhost:3000
+
+You should see the Lecunity interface.
+
+## 8. Test the Application
+
+Try the following:
+
+1. Upload a short audio file.
+2. Upload a supported video file.
+3. Test a YouTube URL.
+4. Check whether transcription completes.
+5. Generate AI notes and verify the selected output language.
+
+Supported output languages:
+
+- English
+- Urdu (اردو)
+- Roman Urdu
+
+Direct media URLs must point to downloadable audio or video files. Not every website URL is supported.
+
+## 9. Useful Development Commands
+
+| Command | Purpose |
+|---|---|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build the application |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
+| `pnpm type-check` | Check TypeScript types |
+| `pnpm test` | Run tests |
+| `pnpm test:run` | Run tests once |
+| `pnpm test:coverage` | Run tests with coverage |
+| `pnpm test:e2e` | Run Playwright tests |
+| `pnpm format` | Format source files |
+| `pnpm format:check` | Check formatting |
+
+## 10. Troubleshooting
+
+### FFmpeg or FFprobe not found
+
+**Possible cause:** The executable directory is missing from PATH.
 
 **Solution:**
 
-1. Check file size is under limit (default 100MB)
-2. Verify file format is supported
-3. Check `MAX_FILE_SIZE_MB` in `.env`
-4. Ensure `uploads/` directory is writable
+1. Confirm FFmpeg is installed.
+2. Verify `ffmpeg -version` and `ffprobe -version`.
+3. Configure `FFMPEG_PATH` and `FFPROBE_PATH` in `.env.local` if automatic detection fails.
+4. Restart the development server.
 
-### TypeScript Errors
+### yt-dlp not found
 
-**Error:** Type errors during development
+**Possible cause:** yt-dlp is not installed or is missing from PATH.
 
 **Solution:**
+
+1. Install yt-dlp.
+2. Run `yt-dlp --version`.
+3. Restart the terminal and development server.
+
+### API key not configured
+
+**Possible cause:** Missing or incorrect environment variables.
+
+**Solution:**
+
+1. Confirm `.env.local` exists in the project root.
+2. Check the required API key for the selected provider.
+3. Check variable names and values.
+4. Restart the development server after changing environment variables.
+
+### Transcription fails
+
+Check:
+
+- Whether the uploaded media format is supported.
+- Whether FFmpeg and FFprobe are working.
+- Whether the selected transcription provider is configured.
+- Whether the API key is valid.
+- Whether the provider accepts the media size and duration.
+
+### AI notes generation fails
+
+Check:
+
+- `AI_SUMMARIZATION_PROVIDER`
+- The API key for the selected text-generation provider.
+- The configured model name.
+- Provider API availability and usage limits.
+
+### Port 3000 is already in use
+
+You can start the application on another port:
 
 ```bash
-# Check for errors
-pnpm type-check
+pnpm dev -- -p 3001
+```
 
-# If dependencies issue
-rm -rf node_modules package-lock.json
+### TypeScript errors
+
+Run:
+
+```bash
+pnpm type-check
+```
+
+If dependency installation appears corrupted, reinstall dependencies:
+
+```bash
 pnpm install
 ```
 
-## Production Setup
+## 11. Production and Deployment
 
-### Build for Production
+Build the application:
 
 ```bash
 pnpm build
+```
+
+Start the production server:
+
+```bash
 pnpm start
 ```
 
-### Using Docker
+### Docker
 
-```bash
-# Build image
-docker build -t talk2notes .
+The repository includes Docker-related configuration. Before using it, verify that the container image provides the required FFmpeg, FFprobe, and yt-dlp executables and that media processing works inside the container.
 
-# Run container
-docker run -p 3000:3000 --env-file .env talk2notes
-```
+### Vercel
 
-### Using Docker Compose
+The project has Vercel deployment configuration, but successful deployment does not automatically guarantee that all media-processing features work in the hosting environment.
 
-```bash
-docker-compose up -d
-```
+Before deploying, verify:
 
-### Deploy to Vercel
+- Required environment variables are configured.
+- Server-side media-processing dependencies are available.
+- Upload size and execution-time limits are suitable.
+- YouTube processing works in the deployment environment.
 
-```bash
-# Install Vercel CLI
-pnpm install -g vercel
+## 12. Project Documentation
 
-# Deploy
-vercel
+For further information, see:
 
-# Add environment variables in Vercel dashboard
-```
-
-## Optional: Development Tools
-
-### Install Recommended VS Code Extensions
-
-Open VS Code in the project directory:
-
-```bash
-code .
-```
-
-Install recommended extensions (VS Code will prompt):
-
-- ESLint
-- Prettier
-- Tailwind CSS IntelliSense
-- TypeScript Extension
-
-### Set Up Git Hooks (Optional)
-
-For conventional commits:
-
-```bash
-pnpm install --save-dev @commitlint/cli @commitlint/config-conventional husky
-npx husky install
-```
-
-## Next Steps
-
-Once installed:
-
-1. Read [ARCHITECTURE.md](ARCHITECTURE.md) to understand the codebase
-2. Check [CONTRIBUTING.md](CONTRIBUTING.md) if you want to contribute
-3. Try different AI providers by changing `AI_PROVIDER` in `.env`
-4. Customize the summarization prompts in `lib/ai.ts`
-
-## Getting Help
-
-- **Documentation:** [README.md](README.md)
-- **Issues:** [GitHub Issues](https://github.com/uxasad/Lecunity/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/uxasad/Lecunity/discussions)
-
-## pnpm Package Manager Guide
-
-This project uses **pnpm** for faster, more efficient dependency management.
-
-### Why pnpm?
-
-- ⚡ Up to 2x faster than npm
-- 💾 Space efficient (content-addressable storage)
-- 🔒 Strict dependency resolution
-- 🎯 Monorepo friendly
-
-### Common pnpm Commands
-
-```bash
-pnpm install                      # Install dependencies
-pnpm add <package>                # Add dependency
-pnpm add -D <package>             # Add dev dependency
-pnpm remove <package>             # Remove package
-pnpm update                       # Update all packages
-pnpm outdated                     # Check outdated packages
-pnpm list --depth=0               # List direct dependencies
-pnpm store prune                  # Clean cache
-```
-
-### pnpm Configuration
-
-Project configuration in `.npmrc`:
-
-```ini
-shamefully-hoist=false
-strict-peer-dependencies=false
-auto-install-peers=true
-node-linker=isolated
-```
-
-## Quick Reference
-
-```bash
-# Development
-pnpm dev              # Start dev server
-pnpm build            # Build for production
-pnpm start            # Start production server
-pnpm lint             # Run linter
-pnpm type-check       # Check TypeScript
-pnpm format           # Format code
-pnpm format:check     # Check formatting
-
-# Deployment
-vercel                # Deploy to Vercel
-docker-compose up     # Run with Docker
-```
+- [README.md](README.md) — project overview
+- [ARCHITECTURE.md](ARCHITECTURE.md) — system architecture
+- [PROJECT-STRUCTURE.md](PROJECT-STRUCTURE.md) — source code structure
+- [CONTRIBUTING.md](CONTRIBUTING.md) — contribution guidelines
+- [CLI-REFERENCE.md](CLI-REFERENCE.md) — development commands
 
 ---
 
-**Success!** 🎉 You now have Talk2Notes running locally.
+**Setup complete:** Lecunity is ready for local development once dependencies, environment variables, and media-processing tools are configured.

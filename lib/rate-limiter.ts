@@ -1,5 +1,5 @@
 // Simple in-memory rate limiter
-// Prevents abuse and helps stay within free tier limits
+// Helps prevent excessive requests and protect provider usage limits
 
 interface RateLimitEntry {
   count: number;

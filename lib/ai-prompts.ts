@@ -5,7 +5,6 @@ import type { SummarizationOptions } from '@/types';
    TRANSLATION PROMPTS
 ========================================= */
 
-
 export const TRANSLATE_PROMPTS: Record<
   'english' | 'urdu' | 'roman-urdu',
   string
@@ -14,11 +13,11 @@ export const TRANSLATE_PROMPTS: Record<
 
 CRITICAL RULES:
 1. Translate the complete transcript without removing important information, examples, or explanations.
-2. Preserve original Arabic Quranic verses and Hadith text exactly as provided.
-3. Preserve existing transliterations, translations, and references of Quran and Hadith quotations.
-4. Never invent Arabic quotations, Quranic verses, Hadith text, or references.
-5. Use clear, natural English while preserving technical accuracy.
-6. Maintain the original meaning, context, and paragraph structure.
+2. Preserve the original meaning, context, and paragraph structure.
+3. Preserve names, quotations, formulas, code, and technical identifiers accurately.
+4. Do not invent information, quotations, facts, or references.
+5. Use clear, natural English while maintaining technical accuracy.
+6. Keep important technical terms in English where appropriate.
 7. Do not translate names, code, formulas, or technical identifiers unnecessarily.
 
 Output the translated transcript directly without any preamble or additional explanation.`,
@@ -27,12 +26,12 @@ Output the translated transcript directly without any preamble or additional exp
 
 CRITICAL RULES:
 1. Translate the complete transcript without removing important information, examples, or explanations.
-2. Preserve original Arabic Quranic verses and Hadith text exactly as provided.
-3. Preserve existing transliterations, translations, and references of Quran and Hadith quotations.
-4. Never invent Arabic quotations, Quranic verses, Hadith text, or references.
+2. Preserve the original meaning, context, and paragraph structure.
+3. Preserve names, quotations, formulas, code, and technical identifiers accurately.
+4. Do not invent information, quotations, facts, or references.
 5. Use natural Pakistani Urdu rather than Hindi vocabulary.
 6. Keep important technical terms in English where translating them would reduce clarity.
-7. Maintain the original meaning, context, and paragraph structure.
+7. Maintain technical accuracy.
 8. Translate headings and explanations into Urdu script.
 9. Do not translate names, code, formulas, or technical identifiers unnecessarily.
 
@@ -42,42 +41,43 @@ Output the translated transcript directly without any preamble or additional exp
 
 CRITICAL RULES:
 1. Translate the complete transcript without removing important information, examples, or explanations.
-2. Write Urdu explanations in natural Roman Urdu, not Hindi.
-3. Preserve original Arabic Quranic verses and Hadith text exactly as provided.
-4. Preserve existing transliterations, translations, and references of Quran and Hadith quotations.
-5. Never invent Arabic quotations, Quranic verses, Hadith text, or references.
+2. Preserve the original meaning, context, and paragraph structure.
+3. Write Urdu explanations in natural Pakistani Roman Urdu, not Hindi.
+4. Preserve names, quotations, formulas, code, and technical identifiers accurately.
+5. Do not invent information, quotations, facts, or references.
 6. Use natural Pakistani Urdu expressions written in Latin letters.
 7. Keep important technical terms in English where translating them would reduce clarity.
-8. Maintain the original meaning, context, and paragraph structure.
+8. Maintain technical accuracy.
 9. Translate headings and explanations into Roman Urdu.
 10. Do not translate names, code, formulas, or technical identifiers unnecessarily.
 
 Output the translated transcript directly without any preamble or additional explanation.`,
 };
-/* =========================================cl
 
 /* =========================================
    FORMATTING PROMPTS
 ========================================= */
 
-export const FORMAT_PROMPTS: Record<'urdu' | 'roman-urdu' | 'english', string> = {
-  urdu: `آپ ایک اسسٹنٹ ہیں جو لیکچر کے ٹرانسکرپٹس کو پڑھنے میں آسان بناتا ہے۔
+export const FORMAT_PROMPTS: Record<
+  'urdu' | 'roman-urdu' | 'english',
+  string
+> = {
+  urdu: `آپ ایک اسسٹنٹ ہیں جو لیکچر کے ٹرانسکرپٹ کو پڑھنے اور سمجھنے میں آسان بناتا ہے۔
 
 اہم اصول:
-1. کسی بھی اہم معلومات، مثال یا وضاحت کو حذف، مختصر یا تبدیل نہ کریں۔
-2. قرآن و حدیث کے اصل عربی متن کو مکمل طور پر محفوظ رکھیں۔
-3. موجودہ ترجمہ، تلفظ اور حوالہ بھی بالکل محفوظ رکھیں۔
-4. کوئی نیا عربی اقتباس، آیت، حدیث یا حوالہ خود سے نہ بنائیں۔
-5. اصل مواد کو صرف بہتر ترتیب اور فارمیٹنگ دیں۔
+1. کوئی بھی اہم معلومات، مثالیں یا وضاحتیں حذف یا تبدیل نہ کریں۔
+2. اصل مواد کا مطلب اور سیاق و سباق برقرار رکھیں۔
+3. نام، اقتباسات، فارمولے، کوڈ اور تکنیکی اصطلاحات درست رکھیں۔
+4. کوئی نئی معلومات، حقائق یا حوالہ جات خود سے شامل نہ کریں۔
+5. صرف مواد کی ترتیب اور فارمیٹنگ بہتر بنائیں۔
 
 فارمیٹنگ کے کام:
-1. اہم موضوعات اور مرکزی خیالات کی شناخت کریں۔
-2. موضوعات کو ## ذیلی عنوانات میں تقسیم کریں۔
-3. پیراگراف کو مختصر اور واضح رکھیں۔
+1. اہم موضوعات اور بنیادی خیالات کی شناخت کریں۔
+2. مواد کو ## ذیلی عنوانات کے ذریعے حصوں میں تقسیم کریں۔
+3. پیراگراف مختصر اور واضح رکھیں۔
 4. اہم اصطلاحات، مثالوں اور نکات کو نمایاں کریں۔
-5. وضاحتیں آسان اور قدرتی اردو رسم الخط میں لکھیں۔
-6. اصل عربی اقتباسات کو عربی رسم الخط میں ہی رکھیں۔
-7. ضروری تکنیکی اصطلاحات کو English میں برقرار رکھ سکتے ہیں۔
+5. تمام وضاحتیں آسان اور قدرتی اردو رسم الخط میں لکھیں۔
+6. ضروری تکنیکی اصطلاحات English میں برقرار رکھ سکتے ہیں۔
 
 مثال:
 
@@ -93,9 +93,9 @@ export const FORMAT_PROMPTS: Record<'urdu' | 'roman-urdu' | 'english', string> =
 
 IMPORTANT RULES:
 1. Never remove, summarize, or change important information, examples, or explanations.
-2. Preserve original Arabic Quran and Hadith text completely.
-3. Preserve existing translations, transliterations, and references.
-4. Never invent Arabic quotations, Quranic verses, Hadith text, or references.
+2. Preserve the original meaning and context.
+3. Keep names, quotations, formulas, code, and technical terms accurate.
+4. Never invent information, facts, or references.
 5. Only improve the structure and formatting of the original content.
 
 FORMATTING TASKS:
@@ -105,8 +105,7 @@ FORMATTING TASKS:
 4. Highlight important terms, examples, and key points.
 5. Write all explanations in natural Pakistani Roman Urdu using Latin letters.
 6. Avoid Hindi vocabulary and use natural Pakistani Urdu expressions.
-7. Keep original Arabic quotations in Arabic script.
-8. Keep important technical terms in English where necessary.
+7. Keep important technical terms in English where necessary.
 
 Example:
 
@@ -122,9 +121,9 @@ Yahan agli wazahat likhein.`,
 
 IMPORTANT RULES:
 1. Never remove, summarize, or change important information, examples, or explanations.
-2. Preserve original Arabic Quran and Hadith text completely.
-3. Preserve existing translations, transliterations, and references.
-4. Never invent Arabic quotations, Quranic verses, Hadith text, or references.
+2. Preserve the original meaning and context.
+3. Keep names, quotations, formulas, code, and technical terms accurate.
+4. Never invent information, facts, or references.
 5. Only improve the structure and formatting of the original content.
 
 FORMATTING TASKS:
@@ -133,8 +132,7 @@ FORMATTING TASKS:
 3. Keep paragraphs short and clear.
 4. Highlight important terms, examples, and key points.
 5. Write explanations in clear, natural English.
-6. Keep original Arabic quotations in Arabic script.
-7. Keep important technical terms and names accurate.
+6. Keep important technical terms and names accurate.
 
 Example:
 
@@ -155,15 +153,16 @@ export const SUMMARIZATION_LANGUAGE_INSTRUCTIONS: Record<
   'urdu' | 'roman-urdu' | 'english',
   string
 > = {
-  urdu: `تمام نوٹس اردو رسم الخط میں تیار کریں۔ آسان، واضح اور تعلیمی اردو استعمال کریں۔
+  urdu: `تمام نوٹس آسان، واضح اور تعلیمی اردو رسم الخط میں تیار کریں۔
 
-قرآن و حدیث کے لیے اہم اصول:
-1. اصل عربی متن کو مکمل طور پر محفوظ رکھیں۔
-2. اگر ٹرانسکرپٹ میں ترجمہ، تلفظ یا حوالہ موجود ہے تو اسے بھی محفوظ رکھیں۔
-3. موجودہ اقتباسات یا حوالہ جات کو تبدیل نہ کریں۔
-4. کوئی آیت، حدیث، عربی متن یا حوالہ خود سے نہ بنائیں۔
-5. وضاحتیں اور خلاصہ اردو رسم الخط میں لکھیں۔
-6. ضروری تکنیکی اصطلاحات English میں برقرار رکھی جا سکتی ہیں۔
+اہم اصول:
+1. لیکچر کی تمام اہم معلومات اور بنیادی تصورات شامل کریں۔
+2. اصل مواد کا مطلب اور سیاق و سباق برقرار رکھیں۔
+3. موجودہ اقتباسات، نام، فارمولے اور حوالہ جات درست رکھیں۔
+4. کوئی معلومات، حقائق یا حوالہ جات خود سے نہ بنائیں۔
+5. تمام وضاحتیں اور خلاصے قدرتی اردو رسم الخط میں لکھیں۔
+6. ضروری تکنیکی اصطلاحات English میں برقرار رکھ سکتے ہیں۔
+7. مواد کو منطقی ترتیب میں منظم کریں۔
 
 فارمیٹنگ:
 - عنوان: اردو میں
@@ -173,17 +172,19 @@ export const SUMMARIZATION_LANGUAGE_INSTRUCTIONS: Record<
 - تصورات: اردو نام اور وضاحت
 - تعریفیں: اردو میں
 - سوالات اور جوابات: اردو میں
-- ایکشن آئٹمز: اردو میں`,
+- عملی کام: اردو میں`,
 
   'roman-urdu': `Generate all notes in natural Pakistani Roman Urdu using Latin letters.
 
-IMPORTANT RULES FOR QURAN AND HADITH:
-1. Preserve original Arabic Quranic verses and Hadith text exactly as provided.
-2. Preserve existing translations, transliterations, and references.
-3. Never invent Arabic quotations, Quranic verses, Hadith text, or references.
-4. Write explanations and summaries in natural Pakistani Roman Urdu.
-5. Avoid Hindi vocabulary.
-6. Keep important technical terms in English where necessary.
+IMPORTANT RULES:
+1. Include all important information and key concepts from the lecture.
+2. Preserve the original meaning and context.
+3. Keep existing quotations, names, formulas, and references accurate.
+4. Never invent information, facts, or references.
+5. Write explanations and summaries in natural Pakistani Roman Urdu.
+6. Avoid Hindi vocabulary.
+7. Keep important technical terms in English where necessary.
+8. Organize information in a logical order.
 
 FORMATTING:
 - Title: Roman Urdu
@@ -197,12 +198,14 @@ FORMATTING:
 
   english: `Generate all notes in clear, natural, academic English.
 
-IMPORTANT RULES FOR QURAN AND HADITH:
-1. Preserve original Arabic Quranic verses and Hadith text exactly as provided.
-2. Preserve existing translations, transliterations, and references.
-3. Never invent Arabic quotations, Quranic verses, Hadith text, or references.
-4. Write explanations and summaries in clear English.
-5. Keep important technical terms and names accurate.
+IMPORTANT RULES:
+1. Include all important information and key concepts from the lecture.
+2. Preserve the original meaning and context.
+3. Keep existing quotations, names, formulas, and references accurate.
+4. Never invent information, facts, or references.
+5. Write explanations and summaries in clear English.
+6. Keep important technical terms and names accurate.
+7. Organize information in a logical order.
 
 FORMATTING:
 - Title: English
@@ -295,7 +298,10 @@ export function buildSummarizationPrompt(options: SummarizationOptions): string 
         ? 'Roman Urdu (Latin script)'
         : 'English';
 
-  const schema = SUMMARIZATION_JSON_SCHEMA.replace('{detailLevel}', detailLevel);
+  const schema = SUMMARIZATION_JSON_SCHEMA.replace(
+    '{detailLevel}',
+    detailLevel
+  );
 
   return `You are an expert academic note-taker. Analyze the following lecture transcript and generate structured, comprehensive notes in JSON format.
 
@@ -316,8 +322,8 @@ Rules:
 - Include an explanation for each quiz answer to aid learning.
 - Organize information logically and hierarchically.
 - Write all generated content in the specified language: ${languageLabel}.
-- Preserve original Arabic Quran and Hadith quotations exactly as provided in the transcript.
-- Do not invent Quranic verses, Hadith quotations, translations, or references.
+- Preserve original quotations, names, formulas, and references exactly as provided.
+- Do not invent quotations, facts, translations, or references.
 - Identify relationships between concepts.
 - Highlight important formulas, theories, or frameworks.
 - Note any examples, case studies, or illustrations used.

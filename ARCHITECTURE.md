@@ -1,525 +1,429 @@
-# Talk2Notes Architecture
+# Lecunity Architecture
 
-This document provides a comprehensive overview of the Talk2Notes architecture, design decisions, and implementation patterns.
+This document describes the current application architecture, main components, processing workflow, AI integrations, and implementation limitations of Lecunity.
 
-## 🎯 Design Philosophy
+## 1. Project Overview
 
-### Core Principles
+Lecunity is an AI-powered learning application that converts audio and video lectures into transcripts and structured study notes.
 
-1. **Separation of Concerns**: TypeScript for server logic, JavaScript for client UI
-2. **Type Safety**: Comprehensive TypeScript types for data models and APIs
-3. **Security First**: Input validation, file sanitization, secure API handling
-4. **Modularity**: Reusable components and abstracted integrations
-5. **Developer Experience**: Clear patterns, consistent naming, good documentation
+The current workflow supports three input methods:
 
-## 🏗️ System Architecture
+- Audio and video file uploads
+- YouTube URLs
+- Direct HTTP/HTTPS media download URLs
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         Client Layer                         │
-│                        (JavaScript)                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │ Upload Form  │  │   Progress   │  │    Notes     │     │
-│  │ Component    │  │  Indicator   │  │   Display    │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Next.js App Router                       │
-│                                                               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   page.js    │  │  layout.js   │  │  API Routes  │     │
-│  │  (Home)      │  │  (Root)      │  │ /transcribe  │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Server Actions Layer                      │
-│                       (TypeScript)                           │
-│                                                               │
-│  ┌────────────────────────────────────────────────┐         │
-│  │      createTranscriptionMutation()             │         │
-│  │  - Validate file                                │         │
-│  │  - Process upload                               │         │
-│  │  - Extract audio (if video)                     │         │
-│  │  - Transcribe                                   │         │
-│  │  - Summarize                                    │         │
-│  │  - Cleanup                                      │         │
-│  └────────────────────────────────────────────────┘         │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      Service Layer                           │
-│                      (TypeScript)                            │
-│                                                               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   AI Service │  │    FFmpeg    │  │    Upload    │     │
-│  │              │  │   Service    │  │   Service    │     │
-│  │ - Transcribe │  │ - Extract    │  │ - Validate   │     │
-│  │ - Summarize  │  │ - Convert    │  │ - Save       │     │
-│  │ - Abstract   │  │ - Metadata   │  │ - Cleanup    │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    External Services                         │
-│                                                               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   OpenAI     │  │     Groq     │  │  Deepgram    │     │
-│  │  Whisper     │  │   Whisper    │  │    Nova      │     │
-│  │   GPT-4      │  │   Mixtral    │  │              │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-```
+The application processes the provided media, generates a transcript, and uses AI models to produce formatted study content.
 
-## 📁 Directory Structure
+## 2. Technology Stack
 
-```
-talk2notes/
-├── actions/              # Server Actions (use server)
-│   └── transcription.ts  # Main processing mutation
-│
-├── app/                  # Next.js App Router
-│   ├── api/             # API routes
-│   │   └── transcribe/
-│   │       └── route.ts  # REST API endpoint
-│   ├── layout.js        # Root layout (metadata, header, footer)
-│   ├── page.js          # Home page (upload + display)
-│   └── globals.css      # Global styles
-│
-├── components/          # Client components (JavaScript/TypeScript)
-│   ├── upload.tsx       # File upload with drag-drop
-│   ├── progress.js      # Progress indicator
-│   ├── notes-display.js # Tabbed notes viewer
-│   └── history.tsx      # History list with delete
-│
-├── lib/                 # Core libraries (TypeScript)
-│   ├── ai.ts           # AI provider abstraction
-│   ├── ffmpeg.ts       # Audio extraction utilities
-│   └── upload.ts       # File upload handling
-│
-├── types/              # TypeScript type definitions
-│   └── index.ts        # All interfaces and types
-│
-├── utils/              # Utility functions (TypeScript)
-│   ├── validateFile.ts # File validation logic
-│   └── history.ts      # History management (localStorage)
-│
-└── public/             # Static assets
+| Technology | Purpose |
+|---|---|
+| Next.js 15 | Application framework |
+| React 19 | User interface |
+| TypeScript | Type safety |
+| Tailwind CSS | Styling |
+| pnpm | Package management |
+| FFmpeg | Audio extraction, conversion, compression, and chunking |
+| yt-dlp | YouTube media downloading |
+| OpenAI SDK | OpenAI-compatible AI integrations |
+| Groq API | Speech transcription and text generation |
+| Gemini API | Text generation |
+| Anthropic API | Text generation |
+
+## 3. High-Level Architecture
+
+```text
+                  USER
+                    |
+                    v
+          Next.js Web Application
+                    |
+                    v
+              Upload Interface
+                    |
+                    v
+       Server Action: transcription.ts
+                    |
+          +---------+---------+
+          |         |         |
+          v         v         v
+       File      YouTube   Direct URL
+       Upload     URL      Download
+          |         |         |
+          v         v         v
+       Validate  yt-dlp   HTTP/HTTPS
+          |         |      Downloader
+          +---------+---------+
+                    |
+                    v
+             FFmpeg Processing
+                    |
+                    v
+             Audio Processing
+                    |
+                    v
+            Speech Transcription
+                    |
+                    v
+           Transcript Processing
+                    |
+          +---------+---------+
+          |         |         |
+          v         v         v
+      Translation Formatting Summary
+          |         |         |
+          +---------+---------+
+                    |
+                    v
+             LectureNotes Result
+                    |
+                    v
+              React Interface
+                    |
+                    v
+          Browser Local Storage
 ```
 
-## 🔄 Data Flow
+## 4. Application Structure
 
-### Upload to Notes Pipeline
+The project follows the Next.js App Router structure.
 
-```
-1. User uploads file (upload.tsx)
-   ↓
-2. FormData sent to /api/transcribe
-   ↓
-3. API route calls createTranscriptionMutation()
-   ↓
-4. Server Action pipeline:
-   a. validateFile() - Check format, size
-   b. saveUploadedFile() - Store temporarily
-   c. [If video] extractAudioFromVideo() - FFmpeg conversion
-   d. transcribeAudio() - AI transcription
-   e. summarizeTranscript() - AI summarization
-   f. Cleanup temp files
-   ↓
-5. Return LectureNotes JSON
-   ↓
-6. Save to history (saveToHistory()) - localStorage
-   ↓
-7. Client displays structured notes (notes-display.js)
-```
-
-### History Management Flow
-
-```
-1. Transcription completes successfully
-   ↓
-2. saveToHistory() called with:
-   - title (filename or YouTube title)
-   - notes (complete LectureNotes)
-   - language (en/id)
-   - source (file/youtube)
-   - timestamp (auto-generated)
-   ↓
-3. Stored in localStorage (max 50 items)
-   ↓
-4. Dispatch 'historyUpdated' event
-   ↓
-5. History component auto-refreshes
-   ↓
-6. User can:
-   - View all past transcriptions
-   - Click to restore notes
-   - Delete individual items
-   - Clear all history
-```
-
-## 🔌 AI Provider Abstraction
-
-### Design Pattern
-
-The AI service uses a provider abstraction pattern to support multiple AI services:
-
-```typescript
-// lib/ai.ts
-export function getAIConfig(): AIConfig {
-  switch (AI_PROVIDER) {
-    case 'openai': return { ... }
-    case 'groq': return { ... }
-    case 'deepgram': return { ... }
-    case 'anthropic': return { ... }
-  }
-}
-
-export async function transcribeAudio(
-  audioPath: string,
-  options: TranscriptionOptions
-): Promise<TranscriptionResult> {
-  const config = getAIConfig();
-
-  // Route to appropriate provider
-  switch (config.provider) {
-    case 'openai': return transcribeWithOpenAI(...)
-    case 'groq': return transcribeWithGroq(...)
-    // ...
-  }
-}
+```text
+lecunity/
+|
+|-- actions/
+|   |-- transcription.ts
+|
+|-- app/
+|   |-- api/
+|   |   |-- limits/
+|   |       |-- route.ts
+|   |
+|   |-- test-error-boundary/
+|   |   |-- page.tsx
+|   |
+|   |-- error.tsx
+|   |-- global-error.tsx
+|   |-- globals.css
+|   |-- layout.tsx
+|   |-- loading.tsx
+|   |-- not-found.tsx
+|   |-- page.tsx
+|
+|-- components/
+|   |-- error-boundary.tsx
+|   |-- history.tsx
+|   |-- media-player.tsx
+|   |-- notes-display.tsx
+|   |-- processing-steps.tsx
+|   |-- processing-tips.tsx
+|   |-- progress.tsx
+|   |-- upload.tsx
+|
+|-- lib/
+|   |-- ai.ts
+|   |-- ai-prompts.ts
+|   |-- ai-utils.ts
+|   |-- ffmpeg.ts
+|   |-- file-security.ts
+|   |-- media-downloader.ts
+|   |-- rate-limiter.ts
+|   |-- transcription-providers.ts
+|   |-- upload.ts
+|   |-- youtube.ts
+|
+|-- types/
+|   |-- index.ts
+|
+|-- utils/
+|   |-- format-api-error.ts
+|   |-- history.ts
+|   |-- validateFile.ts
+|
+|-- public/
+|-- tests/
+|-- scripts/
+|-- package.json
+|-- pnpm-lock.yaml
+|-- next.config.ts
+|-- tsconfig.json
 ```
 
-### Adding New Providers
-
-To add a new AI provider:
+## 5. Application Routes
 
-1. Update `AIProvider` type in `types/index.ts`
-2. Add configuration in `getAIConfig()`
-3. Implement `transcribeWith[Provider]()` function
-4. Add to switch statements in `transcribeAudio()` and `summarizeTranscript()`
-5. Document in README
-
-## 🎭 Server Actions Pattern
+| Route | Purpose |
+|---|---|
+| `/` | Main application interface |
+| `/api/limits` | API endpoint for rate-limit information |
+| `/test-error-boundary` | Error-boundary testing page |
 
-### Mutation Pattern
+Media transcription is handled through a Next.js Server Action rather than a dedicated `/api/transcribe` route.
 
-All server actions follow a consistent mutation result pattern:
+## 6. Media Input and Processing
 
-```typescript
-interface MutationResult<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-```
+The application accepts media through three input methods.
 
-### Implementation
+### A. File Upload
 
-```typescript
-'use server';
+The user selects an audio or video file through the upload interface.
 
-export async function createTranscriptionMutation(
-  formData: FormData
-): Promise<MutationResult<LectureNotes>> {
-  try {
-    // Process logic
-    return {
-      success: true,
-      data: lectureNotes,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
-}
-```
-
-### Benefits
-
-- **Consistent error handling**: Errors never throw, always return
-- **Type safety**: Generic type for data payload
-- **Easy client consumption**: Check `success` field
-- **Logging friendly**: Centralized error capture
-
-## 🎨 Component Architecture
-
-### Client Components (JavaScript)
-
-All UI components are client-side JavaScript for simplicity and flexibility.
-
-#### UploadForm Component
-
-```javascript
-// components/upload.js
-'use client';
-
-Features:
-- Drag-and-drop support
-- File validation
-- Progress tracking
-- Error handling
-- Optimistic UI updates
-```
-
-#### NotesDisplay Component
-
-```javascript
-// components/notes-display.js
-'use client';
-
-Features:
-- Tabbed interface
-- JSON/Markdown export
-- Formatted display
-- Responsive design
-```
-
-### Design Decisions
-
-- **Client-side state**: React hooks for local state
-- **No server components for UI**: Simplifies data flow
-- **Progressive enhancement**: Works without JS for static content
-
-## 🔐 Security Architecture
-
-### Multi-Layer Validation
-
-```
-Client → Server Action → Service Layer
-  ↓           ↓              ↓
-[Basic]   [Full Validation] [Final Check]
-```
-
-### File Upload Security
-
-1. **MIME type checking**: Validate against whitelist
-2. **Extension validation**: Check file extension
-3. **Size limits**: Enforce maximum file size
-4. **Sanitized storage**: Random filenames, isolated directory
-5. **Automatic cleanup**: Remove files after processing
-
-### API Security
-
-- No hardcoded secrets
-- Environment variable configuration
-- Input sanitization at every layer
-- Structured error messages (no sensitive data leaks)
-
-## 📊 Data Models
+Processing:
 
-### Core Types
-
-```typescript
-// Uploaded file metadata
-interface UploadedFile {
-  filepath: string;
-  originalFilename: string;
-  mimetype: string;
-  size: number;
-}
+1. Validate the uploaded file.
+2. Save the file temporarily.
+3. Check whether FFmpeg is available when video processing is required.
+4. Extract audio from video files.
+5. Compress audio when required.
+6. Send audio for transcription.
+7. Process the resulting transcript.
+8. Clean up temporary files.
 
-// AI transcription result
-interface TranscriptionResult {
-  text: string;
-  duration?: number;
-  language?: string;
-  segments?: TranscriptionSegment[];
-}
+### B. YouTube URL
 
-// Final structured notes
-interface LectureNotes {
-  title: string;
-  summary: string;
-  paragraphs: string[];
-  bulletPoints: string[];
-  keyConcepts: KeyConcept[];
-  definitions: Definition[];
-  exampleProblems: ExampleProblem[];
-  actionItems: string[];
-  metadata: NotesMetadata;
-}
-```
+YouTube URLs are processed using yt-dlp.
 
-## 🎯 Prompt Engineering
+Supported URL domains include:
 
-### Transcription Prompt
+- youtube.com
+- www.youtube.com
+- m.youtube.com
+- youtu.be
 
-```typescript
-{
-  language: 'en',
-  temperature: 0,  // Deterministic output
-  prompt: undefined  // Let model auto-detect
-}
-```
+Processing:
 
-### Summarization Prompt
+1. Validate the YouTube URL.
+2. Download the audio using yt-dlp.
+3. Convert the downloaded media into audio when required.
+4. Compress audio when necessary.
+5. Generate the transcript.
+6. Generate study notes.
+7. Clean up temporary files.
 
-Located in `lib/ai.ts` → `buildSummarizationPrompt()`:
+Playlist downloading is disabled.
 
-**Key elements:**
+### C. Direct Media URL
 
-- JSON schema specification
-- Detail level control (concise/detailed/comprehensive)
-- Focus areas (if specified)
-- Structured output requirements
-- Academic writing style
-- Relationship identification
-- Example extraction rules
+The application also accepts direct HTTP/HTTPS media URLs.
 
-## ⚡ Performance Considerations
+The downloader uses Node.js HTTP/HTTPS functionality to retrieve the media file.
 
-### Optimizations
+Current limitations:
 
-1. **Streaming not implemented**: Batch processing for simplicity
-2. **Single file processing**: No concurrent uploads (yet)
-3. **Temp file cleanup**: Automatic removal after processing
-4. **Audio optimization**: Convert to mono, 16kHz for smaller payload
+- The URL must provide a downloadable media file.
+- Streaming pages and embedded players are not supported by the generic downloader.
+- Google Drive and Dropbox integrations are not implemented.
+- Authentication-based downloads are not supported by a dedicated integration.
+- Comprehensive download-size and content-type validation is not implemented in the generic downloader.
 
-### Future Improvements
+A direct URL should not be considered compatible simply because it is publicly accessible.
 
-- [ ] Streaming responses
-- [ ] Queue system for batch processing
-- [ ] Caching for repeated files
-- [ ] Chunk large files
-- [ ] Background job processing
+## 7. Audio Processing
 
-## 🚀 Deployment Architecture
+Audio processing is implemented in `lib/ffmpeg.ts`.
 
-### Environment Requirements
+FFmpeg handles:
 
-- Node.js 18+ runtime
-- FFmpeg binaries
-- Writable /tmp directory
-- Environment variables for API keys
+- Audio extraction from video.
+- Audio format conversion.
+- Audio compression.
+- Audio duration detection.
+- Audio chunk preparation.
+- Temporary file cleanup.
 
-### Vercel Deployment
+Video audio extraction produces MP3 audio, generally using mono audio at 16 kHz.
 
-**Considerations:**
+Long audio files can be divided into smaller chunks. The current chunking configuration uses 600-second (10-minute) segments.
 
-- FFmpeg availability (use serverless layer or custom build)
-- File size limits (100MB default)
-- Function timeout (10s default, upgrade needed)
-- Environment variable configuration
+The transcription workflow processes chunks sequentially and uses a short portion of the previous chunk as context where available.
 
-### Docker Deployment
+FFmpeg and FFprobe must be available in the execution environment for the corresponding media-processing operations.
 
-**Included:**
+## 8. AI Integration
 
-- FFmpeg in container
-- Node.js runtime
-- All dependencies
-- Environment variable support
+AI functionality is implemented mainly in `lib/ai.ts` and `lib/transcription-providers.ts`.
 
-## 🔧 Configuration System
+The application separates speech transcription from text generation.
 
-### Environment Variables
+### Speech Transcription Providers
 
-```env
-# AI Provider Selection
-AI_PROVIDER=openai|groq|deepgram|anthropic
+| Provider | Function |
+|---|---|
+| OpenAI | Audio transcription |
+| Groq | Audio transcription |
+| Deepgram | Audio transcription |
 
-# Provider-specific keys
-OPENAI_API_KEY=...
-GROQ_API_KEY=...
+### Text Generation Providers
 
-# File upload configuration
-MAX_FILE_SIZE_MB=100
-ALLOWED_AUDIO_FORMATS=mp3,wav,...
-ALLOWED_VIDEO_FORMATS=mp4,mkv,...
+| Provider | Function |
+|---|---|
+| OpenAI | Translation, formatting, and summarization |
+| Groq | Translation, formatting, and summarization |
+| Gemini | Translation, formatting, and summarization |
+| Anthropic | Summarization |
 
-# FFmpeg paths (optional)
-FFMPEG_PATH=/usr/local/bin/ffmpeg
-FFPROBE_PATH=/usr/local/bin/ffprobe
-```
+Provider selection is controlled through environment variables.
 
-### Runtime Configuration
+- `AI_PROVIDER` controls transcription.
+- `AI_SUMMARIZATION_PROVIDER` controls text generation and can fall back to `AI_PROVIDER` when unset.
 
-Configuration is loaded at module initialization:
+The configured environment determines which provider is actually used.
 
-- `lib/ai.ts` → AI provider config
-- `utils/validateFile.ts` → Upload limits
-- `lib/upload.ts` → Upload directory
+## 9. Transcript and Study Notes Generation
 
-## 🧪 Testing Strategy
+After transcription, the application performs three text-processing operations:
 
-### Current State
+1. **Translation:** Converts the transcript into the selected output language.
+2. **Formatting:** Organizes transcript text into readable paragraphs.
+3. **Summarization:** Generates structured study content.
 
-Manual testing for MVP release.
+These operations are performed through the AI processing functions.
 
-### Future Testing
+### Supported Output Languages
 
-- **Unit tests**: Core utilities and validation
-- **Integration tests**: Server Actions end-to-end
-- **E2E tests**: Full upload → notes flow
-- **Mock AI providers**: Test without API calls
+- English
+- Urdu (اردو)
+- Roman Urdu
 
-## 📈 Monitoring & Logging
+Speech transcription detects the spoken language independently of the selected output language.
 
-### Current Logging
+### LectureNotes Structure
 
-```typescript
-console.error('Operation failed:', error);
-```
+The generated result follows the `LectureNotes` TypeScript interface.
 
-### Future Enhancements
+It can contain:
 
-- Structured logging (Winston, Pino)
-- Error tracking (Sentry)
-- Analytics (Plausible, Umami)
-- Performance monitoring (Vercel Analytics)
+- Title
+- Summary
+- Paragraphs
+- Bullet points
+- Key concepts
+- Definitions
+- Example problems
+- Quiz questions
+- Action items
+- Original transcript
+- Processing metadata
 
-## 🔄 Migration Path
+The actual fields returned depend on the processing workflow and available model output.
 
-### Version 1.x → 2.x
+## 10. Frontend Architecture
 
-Potential breaking changes:
+The main application page is implemented in `app/page.tsx`.
 
-- API response format changes
-- Provider configuration updates
-- Type definition modifications
+It manages the main application state, including:
 
-Migration guide will be provided with major releases.
+- Generated lecture notes
+- Processing errors
+- History visibility
+- Restoring previously generated notes
 
-## 🤝 Extension Points
+The interface is divided into reusable React components.
 
-### Adding Features
+| Component | Responsibility |
+|---|---|
+| `upload.tsx` | Media input and submission |
+| `notes-display.tsx` | Generated notes presentation |
+| `history.tsx` | Previous results |
+| `media-player.tsx` | Floating media player |
+| `processing-steps.tsx` | Processing stages |
+| `processing-tips.tsx` | Processing guidance |
+| `progress.tsx` | Progress presentation |
+| `error-boundary.tsx` | React error handling |
 
-**Easy to add:**
+## 11. Browser History
 
-- New AI providers (abstraction layer ready)
-- New export formats (component pattern established)
-- Additional validation rules (modular design)
-- Custom prompt templates (configuration-based)
+History is stored in browser `localStorage`, not in a server database.
 
-**More complex:**
+Storage keys:
 
-- Real-time processing (requires streaming)
-- Batch uploads (requires queue system)
-- Collaboration (requires database)
+- `lecunity_last_result`
+- `lecunity_history`
 
-## 📚 Additional Resources
+The history utility is implemented in `utils/history.ts`.
 
-- [Next.js App Router Docs](https://nextjs.org/docs/app)
-- [Next.js Server Actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)
-- [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
-- [FFmpeg Documentation](https://ffmpeg.org/documentation.html)
+Current behavior:
 
----
+- Stores a maximum of 50 history records.
+- Sorts records by timestamp.
+- Supports retrieving individual records.
+- Supports deleting individual records.
+- Supports clearing the complete history.
 
-This architecture is designed to be:
+History is specific to the browser and device where it was created. It is not automatically synchronized between devices.
 
-- **Extensible**: Easy to add providers and features
-- **Maintainable**: Clear separation of concerns
-- **Secure**: Multiple validation layers
-- **Type-safe**: TypeScript throughout server layer
-- **Developer-friendly**: Consistent patterns and good documentation
+## 12. Rate Limiting
 
-For questions or discussions about architecture decisions, please open a [GitHub Discussion](https://github.com/uxasad/Lecunity/discussions).
+Rate limiting is implemented in `lib/rate-limiter.ts`.
+
+Current configured limits:
+
+| Limit | Maximum |
+|---|---:|
+| Hourly transcription requests | 5 |
+| Rolling 24-hour transcription requests | 20 |
+
+Requests are identified using the client IP address obtained from request headers.
+
+**Implementation limitation:** The rate limiter uses an in-memory JavaScript Map. Consequently, its records are local to the running application process and are not shared between multiple server instances. Records are also lost when the process restarts.
+
+A shared persistent rate-limiting service would be required for reliable multi-instance production enforcement.
+
+## 13. File Validation and Security
+
+File validation is implemented in `utils/validateFile.ts`.
+
+The application checks uploaded files and applies configured size restrictions.
+
+The default general file-size limit in the code is 50 MB when no environment override is supplied. The example environment configuration sets it to 100 MB.
+
+Other security-related modules include:
+
+- `lib/file-security.ts`
+- `lib/upload.ts`
+- `utils/validateFile.ts`
+- `lib/rate-limiter.ts`
+
+Security behavior should be evaluated against the actual implementation and deployment environment. A generic direct URL downloader requires additional protections, particularly against server-side request forgery (SSRF), before it can be considered safe for unrestricted public use.
+
+## 14. Environment Configuration
+
+Environment variables configure AI providers and media-processing behavior.
+
+Important configuration variables include:
+
+| Variable | Purpose |
+|---|---|
+| `AI_PROVIDER` | Speech transcription provider |
+| `AI_SUMMARIZATION_PROVIDER` | Text generation provider |
+| `GROQ_API_KEY` | Groq authentication |
+| `OPENAI_API_KEY` | OpenAI authentication |
+| `DEEPGRAM_API_KEY` | Deepgram authentication |
+| `GEMINI_API_KEY` | Gemini authentication |
+| `ANTHROPIC_API_KEY` | Anthropic authentication |
+| `MAX_FILE_SIZE_MB` | General uploaded file-size limit |
+| `FFMPEG_PATH` | Optional FFmpeg executable path |
+| `FFPROBE_PATH` | Optional FFprobe executable path |
+
+Use `.env.example` as the configuration reference. Actual API keys must remain in private environment configuration and must never be committed to the repository.
+
+## 15. Current Architecture Limitations
+
+The following limitations are important when evaluating the current implementation:
+
+1. History is stored locally in the browser.
+2. Rate limiting is process-local and in-memory.
+3. Direct URL support is limited to basic HTTP/HTTPS downloads.
+4. FFmpeg and yt-dlp availability depends on the execution environment.
+5. No persistent user-account or database-backed history system is implemented.
+6. Media-processing compatibility depends on the installed tools, provider limits, and deployment platform.
+7. The processing-status action does not currently provide a real-time background job tracker.
+
+## 16. Summary
+
+Lecunity uses a Next.js application with server-side media processing and external AI services.
+
+The main processing pipeline is:
+
+**Media Input → Validation → Audio Processing → Transcription → Translation and Formatting → AI Summarization → Structured Study Notes**
+
+The architecture is organized into separate modules for media handling, AI integration, frontend components, validation, and browser history. This separation makes the codebase easier to maintain and provides a foundation for future improvements.

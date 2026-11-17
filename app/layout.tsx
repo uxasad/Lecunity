@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Lecunity - AI-Powered Lecture Transcription',
   description: 'Convert audio and video lectures into structured, comprehensive notes using AI',
   keywords: ['transcription', 'lecture notes', 'AI', 'education', 'study tool'],
-  authors: [{ name: 'Talk2Notes Contributors' }],
+  authors: [{ name: 'Lecunity' }],
   openGraph: {
     title: 'Lecunity - AI-Powered Lecture Transcription',
     description: 'Convert audio and video lectures into structured, comprehensive notes using AI',

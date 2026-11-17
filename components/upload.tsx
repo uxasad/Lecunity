@@ -329,7 +329,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
         setProgress(100);
-        setCurrentStep('Complete! ✅');
+        setCurrentStep('Complete! âœ…');
         setProgressDetails('Your lecture notes are ready!');
 
         if (result.data) {
@@ -361,7 +361,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
       }
     } catch (error) {
       console.error('Upload error:', error);
-      setCurrentStep('Error ❌');
+      setCurrentStep('Error âŒ');
       setProgressDetails(error instanceof Error ? error.message : 'An error occurred');
       onError?.(error instanceof Error ? error.message : 'An error occurred');
     } finally {
@@ -422,7 +422,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
             </div>
           </div>
           <p className="mt-2 text-xs text-blue-600">
-            Max file size: 50MB • Conservative limits for free tier • Resets automatically
+            Max file size: 50MB â€¢ Conservative limits for free tier â€¢ Resets automatically
           </p>
         </div>
       )}
@@ -439,7 +439,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
             }`}
           >
-            📁 Upload File
+            ðŸ“ Upload File
           </button>
           <button
             type="button"
@@ -450,7 +450,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
             }`}
           >
-            ▶️ YouTube
+            â–¶ï¸ YouTube
           </button>
           <button
             type="button"
@@ -461,7 +461,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
             }`}
           >
-            🔗 URL
+            ðŸ”— URL
           </button>
         </div>
 
@@ -505,10 +505,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
               </p>
               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-blue-800">
-                  <strong>Supported:</strong> Direct links to audio/video files, Google Drive,
-                  Dropbox, etc.
-                  <br />
-                  <strong>Note:</strong> The URL must be a direct download link to the media file.
+                  <strong>Note:</strong> Provide a direct download link to an audio or video file.
                 </p>
               </div>
             </div>
@@ -643,7 +640,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
                 >
-                  <span className="text-2xl mr-2">🇬🇧</span>
+                  <span className="text-2xl mr-2">ðŸ‡¬ðŸ‡§</span>
                   <span>English</span>
                 </button>
 
@@ -656,8 +653,8 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
                 >
-                  <span className="text-2xl mr-2">🇵🇰</span>
-                  <span>اردو</span>
+                  <span className="text-2xl mr-2">ðŸ‡µðŸ‡°</span>
+                  <span>Ø§Ø±Ø¯Ùˆ</span>
                 </button>
 
                 <button
@@ -669,14 +666,14 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
                 >
-                  <span className="text-2xl mr-2">🇵🇰</span>
+                  <span className="text-2xl mr-2">ðŸ‡µðŸ‡°</span>
                   <span>Roman Urdu</span>
                 </button>
               </div>
 
               <p className="text-xs text-gray-500 mt-1">
-                Original Arabic Quran and Hadith quotations will be preserved.
-              </p>
+  Choose the language in which you want your lecture notes.
+</p>
             </div>
           )}
 

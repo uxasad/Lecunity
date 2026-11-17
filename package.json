@@ -1,25 +1,25 @@
 {
-  "name": "talk2notes",
+  "name": "lecunity",
   "version": "3.2.0",
-  "description": "Open-source multilingual web app that converts audio/video lectures into structured notes using AI with markdown formatting",
-  "author": "Talk2Notes Contributors",
+  "description": "AI-powered learning platform that transforms audio and video lectures into transcripts, summaries, and structured study notes.",
+  "author": "Lecunity",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/uxasad/Lecunity.git"
   },
   "keywords": [
-    "transcription",
-    "ai",
+    "lecunity",
+    "artificial-intelligence",
     "lecture-notes",
-    "openai",
+    "transcription",
     "groq",
+    "whisper",
     "nextjs",
     "education",
-    "bilingual",
-    "indonesian",
-    "markdown",
-    "islamic-content"
+    "urdu",
+    "roman-urdu",
+    "summarization"
   ],
   "scripts": {
     "dev": "next dev",
@@ -39,9 +39,7 @@
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:debug": "playwright test --debug",
     "check:ffmpeg": "bash scripts/check-ffmpeg.sh",
-    "find:ffmpeg": "bash scripts/find-ffmpeg.sh",
-    "deploy:production": "bash deploy-fly.sh",
-    "deploy:fly": "flyctl deploy"
+    "find:ffmpeg": "bash scripts/find-ffmpeg.sh"
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",

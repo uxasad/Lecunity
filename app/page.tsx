@@ -1,3 +1,4 @@
+﻿
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import History from '@/components/history';
 import { ErrorBoundary } from '@/components/error-boundary';
 import type { LectureNotes } from '@/types';
 
-const STORAGE_KEY = 'talk2notes_last_result';
+const STORAGE_KEY = 'lecunity_last_result';
 
 export default function HomePage() {
   const [lectureNotes, setLectureNotes] = useState<LectureNotes | null>(null);
@@ -71,22 +72,12 @@ export default function HomePage() {
         <h2 className="text-4xl font-bold text-gray-900 mb-4">
           Transform Lectures into Structured Notes
         </h2>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Upload audio or video files and let AI generate comprehensive, organized lecture notes
-          with key concepts, definitions, examples, and action items.
-        </p>
 
-        {/* Islamic Lectures Highlight */}
-        <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-full">
-          <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm0-10a4 4 0 100 8 4 4 0 000-8z" />
-            <path d="M10 7a1 1 0 011 1v3a1 1 0 11-2 0V8a1 1 0 011-1z" />
-          </svg>
-          <span className="text-sm font-medium text-emerald-800">
-            🕌 Perfect for Islamic Lectures & Islamic Studies
-          </span>
-          <span className="text-xs text-emerald-600">• Preserves Arabic, Dalil & References</span>
-        </div>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          Upload audio or video files and let AI generate comprehensive,
+          organized lecture notes with key concepts, definitions, examples,
+          and action items.
+        </p>
 
         {/* History Toggle Button */}
         <div className="mt-6">
@@ -94,7 +85,12 @@ export default function HomePage() {
             onClick={() => setShowHistory(!showHistory)}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -177,10 +173,12 @@ export default function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Easy Upload</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Easy Upload
+            </h3>
             <p className="text-gray-600">
-              Drag and drop or click to upload audio and video files. Supports MP3, WAV, MP4, and
-              more.
+              Upload audio and video files or provide a supported media link
+              to get started.
             </p>
           </div>
 
@@ -200,10 +198,12 @@ export default function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Processing</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              AI Processing
+            </h3>
             <p className="text-gray-600">
-              Advanced AI transcribes audio and generates structured notes with key concepts and
-              summaries.
+              AI transcribes audio and organizes the content into structured
+              notes with key concepts and summaries.
             </p>
           </div>
 
@@ -223,26 +223,15 @@ export default function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">🕌 Islamic Content</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Organized Learning
+            </h3>
             <p className="text-gray-600">
-              Specialized for Islamic Studies. Preserves Arabic text with harakat, Quranic verses,
-              Hadith references, transliteration, and translations.
+              Convert lectures into clear, structured notes with important
+              concepts, definitions, examples, and summaries.
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Islamic Hadith */}
-      <div className="mt-12 text-center pb-8 max-w-3xl mx-auto">
-        <p className="text-2xl font-arabic text-emerald-700 mb-4 leading-relaxed" dir="rtl">
-          مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى
-          الجَنَّةِ
-        </p>
-        <p className="text-base text-gray-700 mb-2">
-          "Whoever follows a path in pursuit of knowledge, Allah will make easy for him a path to
-          Paradise."
-        </p>
-        <p className="text-sm text-gray-500">— Narrated by Muslim (2699)</p>
       </div>
     </div>
   );

@@ -1,175 +1,167 @@
-# Error Boundary Implementation
+# Lecunity Error Boundary Implementation
 
-This document describes the error boundary implementation in Talk2Notes for handling client-side errors gracefully.
+This document explains how Lecunity handles client-side rendering errors using Next.js error conventions and reusable React error boundaries.
 
-## Overview
+## 1. Overview
 
-Error boundaries are React components that catch JavaScript errors anywhere in their child component tree, log those errors, and display a fallback UI instead of crashing the entire application.
+Error boundaries are React components that catch JavaScript errors during rendering in their child component trees and display fallback UI instead of allowing the affected section to crash.
 
-## Implementation
+They do not automatically catch every type of error. For example, errors in event handlers, asynchronous callbacks, and server-side processing require separate error handling.
 
-### 1. Global Error Boundaries (Next.js Convention)
+## 2. Next.js Error Handling
 
-#### `app/error.tsx`
+### `app/error.tsx`
 
-Catches errors in page components and their descendants within the same route segment.
+Handles errors within its route segment and displays a fallback interface.
 
-**Features:**
+Documented capabilities include:
 
-- Automatic error recovery with "Try Again" button
-- Development mode error details display
-- Link to GitHub issues for bug reporting
-- User-friendly error messages
+- Error recovery through a retry action.
+- Development-mode error details.
+- User-friendly error messages.
 
-#### `app/global-error.tsx`
+### `app/global-error.tsx`
 
-Catches errors in the root layout and all other error boundaries.
+Handles errors in the root layout.
 
-**Features:**
+It provides a fallback interface for critical application-level errors and must include its own HTML document structure.
 
-- Critical error handling
-- Page reload functionality
-- Full HTML structure (required for root-level errors)
-- Development mode stack trace display
+### Other route-level UI
 
-#### `app/loading.tsx`
+- `app/loading.tsx` provides a loading interface.
+- `app/not-found.tsx` provides the not-found page.
 
-Loading state for route segments during navigation or data fetching.
+## 3. Reusable Error Boundary
 
-#### `app/not-found.tsx`
+File: `components/error-boundary.tsx`
 
-Custom 404 page for non-existent routes.
+The reusable component supports more granular error handling.
 
-### 2. Reusable Error Boundary Component
+Its documented capabilities include:
 
-#### `components/error-boundary.tsx`
+- Wrapping individual UI sections.
+- Displaying fallback UI.
+- Receiving an error callback.
+- Providing a higher-order component wrapper.
 
-Custom error boundary component for granular error handling in specific sections.
-
-**Features:**
-
-- Reusable across different components
-- Custom fallback UI support
-- Error callback for logging/tracking
-- HOC wrapper utility
-
-**Usage Examples:**
+### Basic usage
 
 ```tsx
-// Basic usage
 import { ErrorBoundary } from '@/components/error-boundary';
 
 <ErrorBoundary>
   <YourComponent />
 </ErrorBoundary>
+```
 
-// With custom fallback
+### Custom fallback
+
+```tsx
 <ErrorBoundary fallback={<CustomErrorUI />}>
   <YourComponent />
 </ErrorBoundary>
+```
 
-// With error callback
+### Error callback
+
+```tsx
 <ErrorBoundary
   onError={(error, errorInfo) => {
-    // Send to error tracking service
     console.error('Error caught:', error, errorInfo);
   }}
 >
   <YourComponent />
 </ErrorBoundary>
+```
 
-// Using HOC
+### Higher-order component
+
+```tsx
 import { withErrorBoundary } from '@/components/error-boundary';
 
 const SafeComponent = withErrorBoundary(YourComponent);
 ```
 
-## Current Implementation in App
+## 4. Application Usage
 
-### Homepage (`app/page.tsx`)
+The homepage (`app/page.tsx`) uses error boundaries around important interface sections.
 
-- **History Section**: Wrapped in `ErrorBoundary` to prevent history loading errors from crashing the page
-- **Upload/Display Section**: Wrapped in `ErrorBoundary` with error callback for logging
+The documented sections include:
+
+- **History section:** isolates errors related to displaying browser history.
+- **Upload and notes section:** isolates errors in the upload and notes interface.
+
+This separation helps prevent a rendering error in one section from taking down the entire page.
+
+## 5. Error Hierarchy
+
+```text
+Application
+|
++-- app/global-error.tsx
+|   +-- Root layout errors
+|
++-- app/error.tsx
+|   +-- Route segment errors
+|
++-- ErrorBoundary component
+    +-- Individual UI sections
+        +-- Child components
+```
+
+## 6. Best Practices
+
+1. Use granular boundaries around independent interface sections.
+2. Show understandable error messages to users.
+3. Provide recovery actions where appropriate.
+4. Keep detailed debugging information out of production error messages.
+5. Log errors carefully without exposing API keys or sensitive user data.
+6. Handle API failures, upload errors, and asynchronous operations separately from rendering errors.
+
+## 7. Future Improvements
+
+Potential improvements include:
+
+- Integrating an error monitoring service such as Sentry.
+- Adding user-friendly error reporting.
+- Improving network and offline error handling.
+- Introducing structured error categories.
+- Monitoring recurring application errors.
+
+These are potential enhancements, not claims about currently implemented functionality.
+
+## 8. Testing
+
+A simple component can be used to test an error boundary:
 
 ```tsx
-// History section
-{
-  showHistory && (
-    <ErrorBoundary>
-      <div className="mb-12">
-        <History onSelectItem={handleSelectHistory} />
-      </div>
-    </ErrorBoundary>
-  );
-}
-
-// Upload/Display section
-<ErrorBoundary
-  onError={(error, errorInfo) => {
-    console.error('Upload/Display error:', error, errorInfo);
-  }}
->
-  {!lectureNotes ? (
-    <UploadForm onSuccess={handleSuccess} onError={handleError} />
-  ) : (
-    <NotesDisplay notes={lectureNotes} />
-  )}
-</ErrorBoundary>;
-```
-
-## Error Hierarchy
-
-```
-Root Layout
-├── global-error.tsx (catches layout errors)
-└── error.tsx (catches page errors)
-    └── ErrorBoundary component (catches section errors)
-        └── Your components
-```
-
-## Best Practices
-
-1. **Granular Error Boundaries**: Wrap individual features/sections rather than entire pages
-2. **Error Logging**: Use `onError` callback to send errors to monitoring services
-3. **User-Friendly Messages**: Show helpful messages instead of technical error details in production
-4. **Recovery Options**: Provide "Try Again" or "Go Home" buttons
-5. **Development Mode**: Show detailed error information in development for debugging
-
-## Future Enhancements
-
-1. **Error Tracking Integration**: Integrate with Sentry or similar services
-2. **Error Reporting**: Add "Report Bug" functionality with pre-filled error details
-3. **Offline Detection**: Add specific handling for network errors
-4. **Custom Error Types**: Different UI for different error categories (network, validation, etc.)
-5. **Error Analytics**: Track error frequency and patterns
-
-## Testing Error Boundaries
-
-To test error boundaries in development:
-
-```tsx
-// Create a component that throws an error
 function BuggyComponent() {
   throw new Error('Test error!');
-  return <div>This will never render</div>;
 }
 
-// Wrap it in error boundary
 <ErrorBoundary>
   <BuggyComponent />
-</ErrorBoundary>;
+</ErrorBoundary>
 ```
 
-## Related Files
+The boundary should display its fallback UI when the child component throws during rendering.
 
-- `/app/error.tsx` - Page-level error boundary
-- `/app/global-error.tsx` - Root-level error boundary
-- `/app/loading.tsx` - Loading state component
-- `/app/not-found.tsx` - 404 page
-- `/components/error-boundary.tsx` - Reusable error boundary component
-- `/app/page.tsx` - Homepage with error boundary implementation
+## 9. Related Files
 
-## Resources
+| File | Purpose |
+|---|---|
+| `app/error.tsx` | Route-level error handling |
+| `app/global-error.tsx` | Root-level error handling |
+| `app/loading.tsx` | Loading interface |
+| `app/not-found.tsx` | Not-found interface |
+| `components/error-boundary.tsx` | Reusable React error boundary |
+| `app/page.tsx` | Homepage integration |
+
+## 10. References
 
 - [Next.js Error Handling](https://nextjs.org/docs/app/building-your-application/routing/error-handling)
 - [React Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+
+---
+
+This document provides an overview of error handling in a Next.js application, including the use of error boundaries, error handling strategies, and best practices for error reporting and recovery.

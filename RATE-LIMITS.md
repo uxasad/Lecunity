@@ -1,234 +1,149 @@
-# Rate Limiting & Free Tier Protection
+# Rate Limits and Resource Protection
 
 ## Overview
 
-To ensure the application stays within Fly.io's free tier limits and provide fair usage, we've implemented comprehensive rate limiting and resource management.
+Lecunity uses server-side rate limiting and file validation to reduce excessive processing requests and protect application resources.
 
-## Rate Limits
+The current implementation uses an in-memory rate limiter. These limits are configuration values and should not be considered guaranteed Groq API quotas or permanent usage allowances.
 
-### Hourly Limit
+## Enforced Rate Limits
 
-- **10 transcriptions per hour per user/IP**
-- Prevents excessive API usage and keeps within Groq free tier
-- Resets automatically after 1 hour
+### Hourly Transcription Limit
 
-### Daily Limit
+- Maximum: **5 transcription requests per client IP**
+- Time window: 1 hour
+- The window starts when the first request is recorded.
+- Further requests are rejected after the limit is reached.
 
-- **50 transcriptions per day per user/IP**
-- Ensures monthly quotas aren't exhausted
-- Resets at midnight (rolling 24-hour window)
+### Daily Transcription Limit
 
-### File Size Limits
+- Maximum: **20 transcription requests per client IP**
+- Time window: 24 hours (rolling window).
+- This is not a calendar-day or midnight reset.
 
-- **50MB maximum for uploaded files** (reduced from 100MB)
-- **100MB maximum for YouTube downloads**
-- Prevents memory issues on 256MB RAM instances
+Both limits are checked by the transcription action.
 
-## How It Works
+## File Validation Limits
 
-### Client Identification
+| Validation | Configured limit | Implementation status |
+|---|---:|---|
+| General uploaded file | 50 MB code fallback; 100 MB in the example environment configuration | Enforced |
+| Audio file | 25 MB | Enforced |
+| Video-specific validation | 500 MB | Present, but blocked by the configured general upload limit |
+| YouTube downloaded media | 100 MB | Configuration only; enforcement not verified |
 
-Rate limits are applied per IP address using:
+The general upload limit can be changed using the `MAX_FILE_SIZE_MB` environment variable.
 
-1. `x-forwarded-for` header (if behind proxy)
-2. `x-real-ip` header (if available)
-3. Fallback to "unknown" for local development
+**Important:** The general upload-size check runs before the video-specific 500 MB check. Therefore, the effective video upload limit is the configured general limit (100 MB with the example configuration), not 500 MB.
 
-### Storage
+Audio files larger than 25 MB are rejected by file validation. The validation error currently refers to OpenAI Whisper, so that message should be reviewed separately from the configured Groq transcription provider.
 
-- In-memory rate limiting (no database required)
-- Automatic cleanup of expired entries every 5 minutes
-- Persists only for current server session
+For downloaded media URLs and YouTube videos, the transcription action checks the downloaded audio size and attempts compression when it exceeds 24 MB. This is an audio compression step, not a maximum original-download-size enforcement mechanism.
 
-### Error Messages
+## Client Identification
 
-Users receive clear feedback when limits are exceeded:
+Rate limits use the client's IP address.
 
-- "Rate limit exceeded. You can only transcribe 10 files per hour on the free tier. Please try again in 45 minutes."
-- "Daily limit exceeded. You can transcribe up to 50 files per day on the free tier. Resets in 8 hours."
+The application attempts to identify the client using:
 
-## User Interface
+1. `x-forwarded-for`
+2. `x-real-ip`
+3. `unknown` as a fallback
 
-### Rate Limit Display
+When a forwarded IP header contains multiple addresses, the first address is used.
 
-A blue info box shows current usage:
+Correct IP identification depends on the deployment proxy supplying trustworthy headers.
 
-```
-Free Tier Limits
-7 / 10 files this hour    42 / 50 files today
-Max file size: 50MB • Limits reset automatically
-```
+## Storage and Reset Behavior
 
-### API Endpoint
+The rate limiter stores request counts in a JavaScript `Map` in server memory.
 
-Check current limits programmatically:
+Current behavior:
 
-```bash
+- No database is required.
+- Expired entries are cleaned up every five minutes.
+- Rate-limit records exist only for the lifetime of the server process.
+- Restarting the server clears the stored limits.
+- Separate server instances do not share their rate-limit records.
+
+**Deployment limitation:** This implementation is suitable for basic single-instance protection. It does not provide globally consistent rate limiting across multiple server instances or serverless execution environments.
+
+A shared storage solution, such as Redis, would be needed for reliable distributed rate limiting.
+
+## API Endpoint
+
+The application exposes:
+
+```http
 GET /api/limits
 ```
 
-Response:
+The endpoint reports the current hourly and daily usage information and configured file-size values.
 
-```json
-{
-  "success": true,
-  "limits": {
-    "hourly": {
-      "max": 10,
-      "remaining": 7,
-      "resetTime": 1700000000000,
-      "resetIn": 2400000
-    },
-    "daily": {
-      "max": 50,
-      "remaining": 42,
-      "resetTime": 1700100000000,
-      "resetIn": 28800000
-    },
-    "fileSize": {
-      "maxMB": 50,
-      "maxYoutubeMB": 100
-    }
-  }
-}
-```
+The file-size values returned by this endpoint represent configuration. They do not prove that every limit is enforced by the corresponding processing path.
 
 ## Configuration
 
-All limits are centralized in `lib/rate-limiter.ts`:
+Rate-limit settings are centralized in:
 
-```typescript
-export const RATE_LIMITS = {
-  TRANSCRIPTION: {
-    MAX_REQUESTS: 10,
-    WINDOW_MS: 60 * 60 * 1000, // 1 hour
-  },
-  DAILY: {
-    MAX_TRANSCRIPTIONS: 50,
-    WINDOW_MS: 24 * 60 * 60 * 1000, // 24 hours
-  },
-  FILE_SIZE: {
-    MAX_SIZE_MB: 50,
-    MAX_YOUTUBE_MB: 100,
-  },
-};
+```text
+lib/rate-limiter.ts
 ```
 
-### Adjusting Limits
-
-To modify limits, edit `lib/rate-limiter.ts` and redeploy:
+Current configuration:
 
 ```typescript
-// Example: Increase hourly limit to 20
 TRANSCRIPTION: {
-  MAX_REQUESTS: 20, // Changed from 10
+  MAX_REQUESTS: 5,
   WINDOW_MS: 60 * 60 * 1000,
-}
+},
+
+FILE_SIZE: {
+  MAX_SIZE_MB: 50,
+  MAX_YOUTUBE_MB: 100,
+},
+
+CONCURRENT: {
+  MAX_PROCESSING: 2,
+},
+
+DAILY: {
+  MAX_TRANSCRIPTIONS: 20,
+  WINDOW_MS: 24 * 60 * 60 * 1000,
+},
 ```
 
-## Free Tier Safety
+Note that `CONCURRENT.MAX_PROCESSING` is currently only a configuration constant. No concurrent-processing enforcement was found in the inspected application code.
 
-These limits ensure we stay within:
+Similarly, `MAX_YOUTUBE_MB` is exposed through the limits API, but its enforcement has not been verified.
 
-### Fly.io Free Tier
+## Development and Maintenance
 
-- 256MB RAM per instance
-- 3 shared-cpu-1x VMs
-- 160GB bandwidth/month
-- **With limits**: ~50 files/day × 30 days = 1,500 files/month ✅
+To change the configured hourly or daily limits, edit `lib/rate-limiter.ts`.
 
-### Groq Free Tier
+To change the general uploaded-file size limit, update `MAX_FILE_SIZE_MB` in the environment configuration.
 
-- Rate limits: Varies by model
-- Daily limits: Generous for individual use
-- **With limits**: 10 files/hour prevents API exhaustion ✅
+After changing these values, run the project's tests and type checks.
 
-### Storage Considerations
+Do not assume that increasing application limits also increases the quotas or rate limits of the external AI provider.
 
-- Temporary files cleaned up after processing
-- No persistent file storage (reduces disk usage)
-- History stored in browser localStorage (no server storage)
+## Known Limitations and Future Improvements
 
-## Bypass Options
+The current implementation has the following limitations:
 
-### For Development
-
-To bypass rate limits during testing:
-
-```typescript
-// In lib/rate-limiter.ts, temporarily modify:
-check(key: string, maxRequests: number, windowMs: number): boolean {
-  if (process.env.NODE_ENV === 'development') {
-    return true; // Always allow in development
-  }
-  // ... rest of code
-}
-```
-
-### For Self-Hosting
-
-If you're running on your own infrastructure with higher resources:
-
-1. Increase limits in `lib/rate-limiter.ts`
-2. Increase `MAX_FILE_SIZE_MB` in environment variables
-3. Upgrade Fly.io instance size if needed
-
-## Monitoring
-
-Check application health:
-
-```bash
-flyctl status
-flyctl logs --app talk2notes
-flyctl scale show
-```
-
-Monitor memory usage:
-
-```bash
-flyctl vm status
-```
-
-If you see high memory usage approaching 256MB, consider:
-
-- Reducing file size limits
-- Reducing concurrent processing
-- Upgrading instance size
-
-## Best Practices
-
-1. **Keep limits reasonable**: Too restrictive = bad UX, too loose = abuse risk
-2. **Monitor usage**: Check logs regularly for patterns
-3. **Communicate clearly**: Show users their remaining quota
-4. **Automatic reset**: No manual intervention needed
-5. **Fail gracefully**: Clear error messages with reset times
-
-## Troubleshooting
-
-### "Rate limit exceeded" too frequently
-
-- Check if IP detection is working correctly
-- Consider increasing hourly limit
-- Check for bots or automated access
-
-### Memory issues despite limits
-
-- Verify file size limits are enforced
-- Check for memory leaks in processing
-- Monitor `flyctl vm status`
-
-### Limits not resetting
-
-- Check system time is correct
-- Verify cleanup interval is running
-- Restart application if needed
-
-## Future Enhancements
+- In-memory records are lost when the server restarts.
+- Multiple instances do not share usage records.
+- IP-based limits can be affected by proxy configuration.
+- Concurrent processing is not enforced.
+- The configured YouTube download-size limit is not verified as enforced.
+- File validation has a conflict between the general upload limit and video-specific limit.
 
 Potential improvements:
 
-- [ ] Redis-based rate limiting (for multi-instance deployments)
-- [ ] User authentication with per-user quotas
-- [ ] Premium tier with higher limits
-- [ ] Usage analytics dashboard
-- [ ] Automatic scaling based on usage patterns
+- [ ] Introduce shared Redis-based rate-limit storage.
+- [ ] Implement reliable distributed rate limiting.
+- [ ] Enforce a maximum downloaded-media size.
+- [ ] Implement actual concurrent-processing controls.
+- [ ] Resolve the general and video-specific file-size limit conflict.
+- [ ] Improve provider-specific error messages.
+- [ ] Add automated tests for rate-limit enforcement.

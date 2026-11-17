@@ -1,311 +1,242 @@
-# Contributing to Talk2Notes
+# Contributing to Lecunity
 
-Thank you for your interest in contributing to Talk2Notes! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Lecunity. This document explains how to set up the project and follow its development guidelines.
 
-## 📋 Code of Conduct
+## Code of Conduct
 
-By participating in this project, you agree to maintain a respectful and inclusive environment for everyone.
+Contributors are expected to maintain a respectful, inclusive, and professional environment.
 
-## 🚀 Getting Started
+## Getting Started
 
-1. **Fork the repository**
-2. **Clone your fork**
-   ```bash
-   git clone https://github.com/your-username/talk2notes.git
-   cd talk2notes
-   ```
-3. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
-4. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Add your API keys
-   ```
-5. **Create a branch**
-   ```bash
-   git checkout -b feat/your-feature-name
-   ```
+### 1. Fork and Clone
 
-## 💻 Development Guidelines
+Fork the repository on GitHub, then clone your fork:
+
+```bash
+git clone https://github.com/YOUR-USERNAME/Lecunity.git
+cd Lecunity
+```
+
+### 2. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Configure Environment Variables
+
+Create your local environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Add the required API keys and configuration values. Never commit `.env` or `.env.local` files.
+
+### 4. Start the Development Server
+
+```bash
+pnpm dev
+```
+
+### 5. Create a Branch
+
+Use a descriptive branch name:
+
+```bash
+git checkout -b feat/your-feature-name
+```
+
+## Development Guidelines
 
 ### Code Style
 
-- **TypeScript**: Use for server-side logic, utilities, and data models
-- **JavaScript**: Use for client components and UI
-- Follow the existing code structure and patterns
-- Use meaningful variable and function names
-- Add comments for complex logic
+- Use TypeScript for application logic and React components.
+- Follow the existing project structure and coding patterns.
+- Use meaningful variable, function, and component names.
+- Keep functions focused on a single responsibility.
+- Add comments where the implementation needs clarification.
+- Avoid unnecessary dependencies.
 
 ### File Organization
 
-```
-Server-side (TypeScript):
-- actions/      → Server Actions
-- lib/          → Core libraries
-- utils/        → Utility functions
-- types/        → Type definitions
-
-Client-side (JavaScript):
-- components/   → React components
-- app/          → Pages and layouts
+```text
+actions/       Server Actions
+app/           Next.js routes, layouts, and pages
+components/    React UI components
+lib/           Core application logic and integrations
+types/         Shared TypeScript types
+utils/         Reusable utility functions
 ```
 
 ### Naming Conventions
 
-- **Files**: kebab-case (`validate-file.ts`, `upload-form.js`)
-- **Components**: PascalCase (`UploadForm`, `NotesDisplay`)
-- **Functions**: camelCase (`validateFile`, `transcribeAudio`)
-- **Constants**: UPPER_SNAKE_CASE (`MAX_FILE_SIZE`, `AI_PROVIDER`)
+- **Files:** kebab-case (`validate-file.ts`)
+- **React components:** PascalCase (`NotesDisplay`)
+- **Functions and variables:** camelCase (`validateFile`)
+- **Constants:** UPPER_SNAKE_CASE (`MAX_FILE_SIZE`)
 
 ### TypeScript Guidelines
 
-- Define explicit types for all function parameters and return values
-- Use interfaces for object shapes
-- Avoid `any` type unless absolutely necessary
-- Export types that may be reused
+- Define appropriate types for function parameters and return values.
+- Use interfaces or type aliases for structured data.
+- Avoid `any` unless there is a clear technical reason.
+- Reuse shared types from the `types/` directory when appropriate.
+- Keep type definitions consistent with actual application behavior.
 
-### React/Next.js Guidelines
+### React and Next.js Guidelines
 
-- Use functional components
-- Implement proper error boundaries
-- Use Next.js Server Actions for data mutations
-- Keep components focused and single-purpose
-- Use proper semantic HTML
+- Use functional React components.
+- Follow the Next.js App Router conventions.
+- Use Server Actions for the existing server-side mutation workflows.
+- Keep client-side and server-side responsibilities separate.
+- Handle loading, validation, and error states properly.
+- Use semantic HTML and accessible UI patterns.
 
-### Security Requirements
+## Security Requirements
 
-All code must follow the security guidelines in `.instructions.md`:
+All contributions must follow secure development practices:
 
-- Validate all inputs (client and server-side)
-- Sanitize file uploads
-- No hardcoded secrets
-- Use parameterized queries
-- Implement proper error handling
-- No sensitive data in logs or error messages
+- Validate user input on the server.
+- Validate uploaded files, including file type and size.
+- Never hardcode API keys or other secrets.
+- Keep sensitive configuration in environment variables.
+- Avoid exposing internal errors or sensitive information to users.
+- Use safe file-handling and media-processing practices.
+- Apply appropriate request rate limits.
+- Review changes that affect file uploads, URL downloads, or external API calls.
 
-## 🧪 Testing
+## Testing Before Submitting
 
-Before submitting:
+Run the relevant checks before opening a pull request.
 
-1. **Type check**
-
-   ```bash
-   pnpm type-check
-   ```
-
-2. **Lint**
-
-   ```bash
-   pnpm lint
-   ```
-
-3. **Format**
-
-   ```bash
-   pnpm format
-   ```
-
-4. **Build**
-
-   ```bash
-   pnpm build
-   ```
-
-5. **Manual testing**
-   - Test with various file formats
-   - Test error cases
-   - Verify uploads work correctly
-   - Check notes generation
-
-## 📝 Commit Messages
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-### Types
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code formatting (no logic changes)
-- `refactor`: Code restructuring
-- `perf`: Performance improvements
-- `test`: Adding/updating tests
-- `chore`: Maintenance tasks
-- `ci`: CI/CD changes
-
-### Examples
+### Type Checking
 
 ```bash
-feat(upload): add drag-and-drop support
-
-Add drag-and-drop functionality to the upload form
-for improved user experience.
-
-Closes #123
+pnpm type-check
 ```
+
+### Tests
 
 ```bash
-fix(transcription): handle empty audio files
-
-Add validation to prevent processing of empty
-or corrupted audio files.
-
-Fixes #456
+pnpm test:run
 ```
 
-## 🔀 Pull Request Process
+### Linting
 
-1. **Update documentation** if needed
-2. **Add tests** for new features
-3. **Ensure all checks pass**
-4. **Write a clear PR description**:
-   - What changes were made
-   - Why the changes were needed
-   - How to test the changes
-   - Screenshots (if UI changes)
-
-### PR Template
-
-```markdown
-## Description
-
-Brief description of changes
-
-## Type of Change
-
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-
-How to test these changes
-
-## Screenshots (if applicable)
-
-## Checklist
-
-- [ ] Code follows style guidelines
-- [ ] Self-review completed
-- [ ] Comments added for complex code
-- [ ] Documentation updated
-- [ ] No new warnings
-- [ ] Tests added/updated
-- [ ] All tests pass
+```bash
+pnpm lint
 ```
 
-## 🐛 Bug Reports
+### Production Build
 
-### Before Submitting
+```bash
+pnpm build
+```
 
-1. Check existing issues
-2. Try the latest version
-3. Collect relevant information
+Also manually test relevant changes, especially:
+
+- Audio and video uploads
+- Supported YouTube and direct media URLs
+- Transcription and notes generation
+- Supported output languages
+- Validation and error handling
+- Browser history behavior
+
+Not every change requires testing every feature, but contributors should test the functionality affected by their changes.
+
+## Bug Reports
+
+Before reporting a bug:
+
+1. Check whether the issue has already been reported.
+2. Confirm that you are using the latest project version.
+3. Provide clear reproduction steps.
+4. Include relevant error messages without exposing API keys or private information.
 
 ### Bug Report Template
 
 ```markdown
 **Describe the bug**
-Clear description of the bug
 
-**To Reproduce**
-Steps to reproduce:
+Explain what happened.
 
-1. Go to '...'
-2. Click on '...'
-3. See error
+**Steps to reproduce**
+
+1. Open the application.
+2. Perform the relevant action.
+3. Describe the observed result.
 
 **Expected behavior**
-What should happen
 
-**Screenshots**
-If applicable
+Explain what should have happened.
 
 **Environment**
 
-- OS: [e.g. macOS 14.0]
-- Node version: [e.g. 18.17.0]
-- Browser: [e.g. Chrome 120]
+- Operating System:
+- Node.js version:
+- Browser:
 
 **Additional context**
-Any other relevant information
+
+Add relevant logs or screenshots.
 ```
 
-## 💡 Feature Requests
+## Feature Requests
+
+Feature requests should explain the problem and the proposed improvement.
 
 ### Feature Request Template
 
 ```markdown
-**Is your feature request related to a problem?**
-Clear description of the problem
+**Problem**
 
-**Describe the solution you'd like**
-Clear description of desired functionality
+What problem are you trying to solve?
 
-**Describe alternatives you've considered**
-Other approaches you've thought about
+**Proposed solution**
+
+Describe the suggested feature.
+
+**Alternatives**
+
+Mention other solutions considered.
 
 **Additional context**
-Mockups, examples, etc.
+
+Include examples or screenshots if relevant.
 ```
 
-## 🏗️ Architecture Decisions
+## Architecture Changes
 
-When making significant architectural changes:
+For significant technical changes:
 
-1. Open a discussion first
-2. Explain the rationale
-3. Consider backwards compatibility
-4. Update `ARCHITECTURE.md`
+1. Explain the problem the change addresses.
+2. Describe the proposed implementation.
+3. Consider compatibility with existing functionality.
+4. Update `ARCHITECTURE.md` when the system design changes.
+5. Update relevant documentation and tests.
 
-## 📚 Documentation
+## Documentation
 
-Good documentation includes:
+Keep project documentation accurate and consistent with the current implementation.
 
-- Clear explanations
-- Code examples
-- API references
-- Usage instructions
-- Configuration options
+Relevant documentation includes:
 
-Update these files as needed:
+- `README.md` — Project overview and features
+- `ARCHITECTURE.md` — Technical architecture
+- `PROJECT-STRUCTURE.md` — Repository organization
+- `QUICKSTART.md` — Quick setup instructions
+- `SETUP.md` — Environment and installation setup
+- `TESTING.md` — Testing instructions
 
-- `README.md` - Main documentation
-- `ARCHITECTURE.md` - Technical details
-- `CONTRIBUTING.md` - This file
-- Code comments
+## Pull Requests
 
-## 🤝 Community
+Before submitting a pull request:
 
-- Be respectful and inclusive
-- Help others learn
-- Share knowledge
-- Provide constructive feedback
-- Credit others' work
+1. Make sure your branch contains only relevant changes.
+2. Run the appropriate checks and tests.
+3. Update documentation when necessary.
+4. Provide a clear description of the changes.
+5. Mention any known limitations.
 
-## 📧 Questions?
-
-- Open a [Discussion](https://github.com/uxasad/Lecunity/discussions)
-- Check existing [Issues](https://github.com/uxasad/Lecunity/issues)
-- Review the [Architecture docs](ARCHITECTURE.md)
-
-## 🎉 Recognition
-
-Contributors will be:
-
-- Listed in the project
-- Credited in release notes
-- Thanked in the community
-
-Thank you for contributing to Talk2Notes! 🚀
+Thank you for helping improve Lecunity.

@@ -1,310 +1,230 @@
-# Talk2Notes Project Structure
+# Lecunity Project Structure
 
-```
-talk2notes/
+This document describes the current source-code organization of Lecunity.
+
+## 1. Technology Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Frontend:** React 19
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Package Manager:** pnpm
+- **Media Processing:** FFmpeg and FFprobe
+- **Media Downloading:** yt-dlp and direct HTTP/HTTPS media URLs
+- **AI Services:** OpenAI, Groq, Gemini, and Anthropic (depending on the task and configuration)
+- **Testing:** Vitest and Playwright configuration
+
+## 2. Project Directory
+
+```text
+Lecunity-ai/
 │
-├── .github/                      # GitHub configuration
-│   └── workflows/                # GitHub Actions workflows
-│       ├── ci.yml                # Continuous Integration
-│       └── code-quality.yml      # Code quality checks
+├── .github/                         # GitHub configuration and workflows
+├── .vscode/                         # Editor configuration
 │
-├── .vscode/                      # VS Code configuration
-│   ├── extensions.json           # Recommended extensions
-│   └── settings.json             # Editor settings
+├── actions/
+│   └── transcription.ts             # Server Actions for media processing
 │
-├── actions/                      # Next.js Server Actions (TypeScript)
-│   └── transcription.ts          # Main transcription mutation logic
-│       ├── createTranscriptionMutation()
-│       ├── validateFileMutation()
-│       └── cleanupFilesAction()
+├── app/
+│   ├── api/
+│   │   └── limits/
+│   │       └── route.ts             # Rate-limit information endpoint
+│   ├── test-error-boundary/
+│   │   └── page.tsx                 # Error-boundary test page
+│   ├── error.tsx                    # Route error UI
+│   ├── global-error.tsx             # Global error UI
+│   ├── globals.css                  # Global styles
+│   ├── layout.tsx                   # Root application layout
+│   ├── loading.tsx                  # Loading UI
+│   ├── not-found.tsx                # Not-found page
+│   └── page.tsx                     # Main application page
 │
-├── app/                          # Next.js App Router (JavaScript)
-│   ├── api/                      # API Routes
-│   │   └── transcribe/
-│   │       └── route.ts          # Transcription API endpoint
-│   ├── layout.js                 # Root layout with header/footer
-│   ├── page.js                   # Home page (upload + display)
-│   └── globals.css               # Global styles with Tailwind
+├── components/
+│   ├── error-boundary.tsx           # Error boundary component
+│   ├── history.tsx                  # Previous results/history UI
+│   ├── media-player.tsx             # Media playback component
+│   ├── notes-display.tsx            # Generated notes display
+│   ├── processing-steps.tsx         # Processing stages UI
+│   ├── processing-tips.tsx          # Processing guidance
+│   ├── progress.tsx                 # Progress display
+│   └── upload.tsx                   # File and URL input UI
 │
-├── components/                   # React Components (JavaScript/TypeScript)
-│   ├── upload.tsx                # File upload form with drag-drop
-│   ├── progress.js               # Progress indicator
-│   ├── notes-display.js          # Tabbed notes viewer
-│   └── history.tsx               # History list with delete functionality
+├── lib/
+│   ├── __tests__/
+│   │   ├── ai-utils.test.ts
+│   │   ├── ai.test.ts
+│   │   └── transcription-providers.test.ts
+│   ├── ai-prompts.ts                # AI prompt templates
+│   ├── ai-utils.ts                  # AI utility functions
+│   ├── ai.ts                        # AI provider and generation logic
+│   ├── ffmpeg.ts                    # FFmpeg media processing
+│   ├── file-security.ts             # File validation and security checks
+│   ├── media-downloader.ts          # Direct media URL downloading
+│   ├── rate-limiter.ts              # Request rate limiting
+│   ├── transcription-providers.ts   # Speech transcription providers
+│   ├── upload.ts                    # Upload handling
+│   └── youtube.ts                   # YouTube media handling
 │
-├── lib/                          # Core Libraries (TypeScript)
-│   ├── ai.ts                     # AI provider abstraction
-│   │   ├── getAIConfig()
-│   │   ├── transcribeAudio()
-│   │   ├── summarizeTranscript()
-│   │   ├── transcribeWithOpenAI()
-│   │   ├── transcribeWithGroq()
-│   │   ├── transcribeWithDeepgram()
-│   │   └── buildSummarizationPrompt()
-│   │
-│   ├── ffmpeg.ts                 # FFmpeg utilities
-│   │   ├── extractAudioFromVideo()
-│   │   ├── getAudioDuration()
-│   │   ├── convertAudioFormat()
-│   │   ├── cleanupTempFile()
-│   │   └── getAudioMetadata()
-│   │
-│   └── upload.ts                 # File upload handling
-│       ├── ensureUploadDir()
-│       ├── parseFormData()
-│       ├── saveUploadedFile()
-│       └── cleanupUploadedFile()
+├── public/                          # Static public assets
+├── scripts/                         # Project utility scripts
+├── tests/                           # Additional tests
 │
-├── types/                        # TypeScript Type Definitions
-│   └── index.ts                  # All interfaces and types
-│       ├── UploadedFile
-│       ├── TranscriptionResult
-│       ├── LectureNotes
-│       ├── KeyConcept
-│       ├── Definition
-│       ├── ExampleProblem
-│       ├── HistoryItem
-│       ├── MutationResult<T>
-│       └── AIConfig
+├── types/
+│   └── index.ts                     # Shared TypeScript types
 │
-├── utils/                        # Utility Functions (TypeScript)
-│   ├── validateFile.ts           # File validation
-│   │   ├── validateFile()
-│   │   ├── formatFileSize()
-│   │   ├── formatDuration()
-│   │   └── sanitizeFilename()
-│   └── history.ts                # History management
-│       ├── getHistory()
-│       ├── saveToHistory()
-│       ├── deleteFromHistory()
-│       ├── clearHistory()
-│       ├── getHistoryItem()
-│       └── formatTimestamp()
+├── uploads/                         # Runtime upload storage
 │
-├── public/                       # Static Assets
-│   └── (images, icons, etc.)
+├── utils/
+│   ├── format-api-error.test.ts     # API error formatting tests
+│   ├── format-api-error.ts          # API error formatting
+│   ├── history.ts                   # Browser history utilities
+│   └── validateFile.ts              # File validation utilities
 │
-├── uploads/                      # Upload directory (gitignored)
-│   └── (temporary uploaded files)
-│
-├── .env.example                  # Environment variables template
-├── .env                          # Environment variables (gitignored)
-├── .gitignore                    # Git ignore rules
-├── .prettierrc.json              # Prettier configuration
-├── .prettierignore               # Prettier ignore rules
-├── .eslintrc.json                # ESLint configuration
-├── .editorconfig                 # Editor configuration
-│
-├── commitlint.config.js          # Commit message linting
-├── next.config.js                # Next.js configuration
-├── tsconfig.json                 # TypeScript configuration
-├── tailwind.config.js            # Tailwind CSS configuration
-├── postcss.config.js             # PostCSS configuration
-│
-├── package.json                  # Project dependencies and scripts
-├── package-lock.json             # Dependency lock file
-│
-├── Dockerfile                    # Docker container definition
-├── docker-compose.yml            # Docker Compose configuration
-│
-├── README.md                     # Main documentation
-├── ARCHITECTURE.md               # Architecture documentation
-├── CONTRIBUTING.md               # Contribution guidelines
-├── SETUP.md                      # Setup instructions
-├── LICENSE                       # MIT License
-│
-└── setup.sh                      # Automated setup script
-```
-
-## Key Directories Explained
-
-### `actions/` - Server Actions
-
-Server-side logic using Next.js Server Actions with `'use server'` directive.
-All files are TypeScript for type safety.
-
-**Purpose:** Handle mutations and server-side operations
-**Language:** TypeScript
-**Pattern:** MutationResult<T> return type
-
-### `app/` - App Router
-
-Next.js 14 App Router for pages and routing.
-Uses JavaScript for flexibility in client components.
-
-**Purpose:** Pages, layouts, and API routes
-**Language:** JavaScript (pages), TypeScript (API routes)
-**Pattern:** File-based routing
-
-### `components/` - UI Components
-
-React client components for the user interface.
-Uses JavaScript for simplicity in UI code.
-
-**Purpose:** Reusable UI components
-**Language:** JavaScript
-**Pattern:** Functional components with hooks
-
-### `lib/` - Core Libraries
-
-Business logic and external service integrations.
-TypeScript for type safety and maintainability.
-
-**Purpose:** Core application logic
-**Language:** TypeScript
-**Pattern:** Exported functions with types
-
-### `types/` - Type Definitions
-
-Centralized TypeScript type definitions.
-Shared across all TypeScript files.
-
-**Purpose:** Type definitions and interfaces
-**Language:** TypeScript
-**Pattern:** Export interfaces and types
-
-### `utils/` - Utility Functions
-
-Helper functions used across the application.
-TypeScript for type safety.
-
-**Purpose:** Reusable utility functions
-**Language:** TypeScript
-**Pattern:** Pure functions with types
-
-## File Naming Conventions
-
-- **TypeScript files:** `kebab-case.ts` (e.g., `validate-file.ts`)
-- **JavaScript files:** `kebab-case.js` (e.g., `upload-form.js`)
-- **React components:** `PascalCase` for component names
-- **Constants:** `UPPER_SNAKE_CASE`
-- **Functions:** `camelCase`
-
-## Import Path Aliases
-
-The project uses path aliases for cleaner imports:
-
-```typescript
-// Instead of: import { LectureNotes } from '../../../types'
-import { LectureNotes } from '@/types'
-
-// Available aliases:
-@/actions      → /actions
-@/app          → /app
-@/components   → /components
-@/lib          → /lib
-@/types        → /types
-@/utils        → /utils
+├── .dockerignore
+├── .editorconfig
+├── .env.example                     # Example environment configuration
+├── .eslintrc.json
+├── .gitignore
+├── .npmrc
+├── .nvmrc
+├── .prettierignore
+├── .prettierrc.json
+├── ARCHITECTURE.md
+├── CHANGELOG.md
+├── CLI-REFERENCE.md
+├── commitlint.config.js
+├── CONTRIBUTING.md
+├── docker-compose.yml
+├── Dockerfile
+├── DOCS.md
+├── ERROR-BOUNDARY.md
+├── FILE-SECURITY.md
+├── GROQ-SETUP.md
+├── LICENSE
+├── MEDIA-PLAYER.md
+├── next.config.js
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── postcss.config.js
+├── PROJECT-STRUCTURE.md
+├── QUICKSTART.md
+├── RATE-LIMITS.md
+├── README.md
+├── setup.sh
+├── SETUP.md
+├── tailwind.config.js
+├── TESTING.md
+├── TROUBLESHOOTING.md
+├── tsconfig.json
+├── URL-SOURCE.md
+├── vitest.config.mts
+└── playwright.config.ts
 ```
 
-## Configuration Files
+## 3. Main Application Flow
 
-| File                   | Purpose                                                  |
-| ---------------------- | -------------------------------------------------------- |
-| `next.config.js`       | Next.js configuration (body size, experimental features) |
-| `tsconfig.json`        | TypeScript compiler options                              |
-| `tailwind.config.js`   | Tailwind CSS theme and configuration                     |
-| `postcss.config.js`    | PostCSS plugins configuration                            |
-| `.eslintrc.json`       | ESLint rules for code quality                            |
-| `.prettierrc.json`     | Prettier formatting rules                                |
-| `commitlint.config.js` | Conventional commit validation                           |
+1. The user uploads an audio/video file or provides a supported media URL.
+2. The application validates the input.
+3. Media is uploaded or downloaded for processing.
+4. FFmpeg extracts and prepares audio when required.
+5. A configured transcription provider converts speech into text.
+6. AI services process the transcript to generate formatted notes and summaries.
+7. The application returns the result to the user interface.
+8. Previous results can be stored in browser local storage.
 
-## Build Output
+## 4. Important Modules
 
-When you run `npm run build`, Next.js creates:
+| Module | Responsibility |
+|---|---|
+| `actions/transcription.ts` | Coordinates the transcription workflow through Server Actions |
+| `lib/ffmpeg.ts` | Extracts, converts, and prepares audio |
+| `lib/media-downloader.ts` | Downloads supported direct media URLs |
+| `lib/youtube.ts` | Handles YouTube media processing |
+| `lib/transcription-providers.ts` | Integrates speech-to-text providers |
+| `lib/ai.ts` | Handles AI generation and provider selection |
+| `lib/ai-prompts.ts` | Defines prompts for AI processing |
+| `lib/file-security.ts` | Performs file security checks |
+| `lib/rate-limiter.ts` | Applies request limits |
+| `utils/history.ts` | Manages browser-side history |
 
+## 5. Supported Output Languages
+
+Lecunity currently supports these output languages:
+
+- English
+- Urdu (Urdu script)
+- Roman Urdu
+
+The selected output language controls the language used for generated content. It does not necessarily determine the spoken language of the original recording.
+
+## 6. Data and Storage
+
+- Previous results are stored in the user's browser using local storage.
+- Browser history is limited to a maximum of 50 records.
+- The current application does not provide user accounts or a shared database-backed history.
+- Uploaded media uses the configured runtime upload storage.
+- Local environment files such as `.env` and `.env.local` should not be committed to the repository.
+
+## 7. API and Server Processing
+
+The application uses Next.js Server Actions for the main media transcription workflow.
+
+The currently implemented API route is:
+
+```text
+GET /api/limits
 ```
-.next/
-├── cache/              # Build cache
-├── server/             # Server-side code
-├── static/             # Static assets
-└── types/              # Generated types
-```
 
-## Environment Files
+There is no separate `/api/transcribe` route. Transcription is coordinated through `actions/transcription.ts`.
 
-```
-.env                    # Local development (gitignored)
-.env.example            # Template for environment variables
-.env.local              # Local overrides (gitignored)
-.env.production         # Production variables (gitignored)
-```
+## 8. Development Commands
 
-## Dependencies Overview
-
-### Core Dependencies
-
-- `next` - React framework
-- `react`, `react-dom` - UI library
-- `openai` - OpenAI API client
-- `formidable` - File upload handling
-- `fluent-ffmpeg` - FFmpeg wrapper
-- `zod` - Schema validation
-
-### Dev Dependencies
-
-- `typescript` - Type checking
-- `eslint` - Code linting
-- `prettier` - Code formatting
-- `tailwindcss` - CSS framework
-- `autoprefixer`, `postcss` - CSS processing
-
-## Scripts Reference
+Run these commands from the project root:
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm start            # Start production server
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript type checking
-npm run format       # Format code with Prettier
-npm run format:check # Check code formatting
+# Install dependencies
+pnpm install
+
+# Start the development server
+pnpm dev
+
+# Run TypeScript checks
+pnpm type-check
+
+# Run tests
+pnpm test:run
+
+# Run the production build
+pnpm build
 ```
 
-## CI/CD Workflows
+Refer to `package.json` for the complete and authoritative list of available scripts.
 
-### `ci.yml` - Continuous Integration
+## 9. Build Output
 
-- Runs on push/PR to main/develop
-- Lint, type check, build
-- Security scan with Snyk
+Next.js generates its build output in the `.next/` directory.
 
-### `code-quality.yml` - Code Quality
+This directory is generated automatically and should not be treated as application source code.
 
-- Runs on PRs
-- Validates conventional commits
-- Comments on PR with results
+## 10. Important Notes
 
-## Docker Structure
-
-### `Dockerfile`
-
-Multi-stage build:
-
-1. **base** - Node.js + FFmpeg
-2. **dependencies** - Install packages
-3. **build** - Build application
-4. **runner** - Production runtime
-
-### `docker-compose.yml`
-
-- Single service configuration
-- Volume for uploads
-- Environment variable support
-- Auto-restart policy
-
-## Getting Started
-
-For first-time setup, run:
-
-```bash
-./setup.sh
-```
-
-Or follow [SETUP.md](SETUP.md) for detailed instructions.
+- FFmpeg and FFprobe are required for media-processing operations.
+- YouTube processing depends on the configured media tools and runtime environment.
+- Direct URL processing requires a supported, downloadable media resource; not every website URL is supported.
+- AI provider availability depends on valid API keys and provider configuration.
+- Rate limits are process-local and are not a distributed rate-limiting system.
+- Deployment compatibility depends on the hosting environment and availability of required media-processing binaries.
 
 ---
 
-**Maintained by:** Talk2Notes Contributors
+**Project:** Lecunity
+
+**Framework:** Next.js 15
+**Package Manager:** pnpm
+**Language:** TypeScript
+**Version Control:** Git
 **License:** MIT
-**Last Updated:** November 2025
+**Repository:** https://github.com/uxasad/Lecunity
+**Documentation:** https://uxasad.github.io/Lecunity/
+**Author:** Muhammad Asad Ullah

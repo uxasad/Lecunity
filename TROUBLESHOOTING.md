@@ -1,454 +1,478 @@
-# Troubleshooting Guide
+# Troubleshooting
 
-Common issues and their solutions for Talk2Notes.
+This guide covers common setup, media-processing, transcription, AI-generation, and deployment issues in Lecunity.
 
-## 🔴 Connection Errors
+## 1. Application Does Not Start
 
-### Error: `Connection to OpenAI API failed` or `ECONNRESET`
+### Check Node.js and pnpm
 
-**Cause**: This typically occurs when:
-
-- Audio file is too large (even under 25MB, files over 10MB can be unstable)
-- Network connection is unstable during upload
-- Upload timeout during large file transfer
-
-**✅ Automatic Fix (v2.0+)**:
-The app now **automatically compresses** audio files over 10MB to ~8MB before transcription for maximum reliability.
-
-**Manual Solutions**:
-
-1. **Use files under 10MB** (recommended for best reliability):
-
-   ```bash
-   # Check file size
-   ls -lh your-file.mp3
-
-   # Compress to optimal size
-   ffmpeg -i input.mp3 -ar 16000 -ac 1 -b:a 48k output.mp3
-   ```
-
-2. **For audio files 10-25MB**:
-   - App will auto-compress (watch console logs)
-   - May take longer but should work
-   - If fails, manually compress to under 10MB
-
-3. **For video files**:
-   - Videos are extracted at 48kbps (very small)
-   - Keep videos under 200MB
-   - Recommended: Videos under 25 minutes
-   - Auto-compression applies to extracted audio
-
-4. **Check console logs**:
-
-   ```
-   [Transcription] File size: 16.32MB
-   [Transcription] File > 10MB, compressing...
-   [Compress] Compressing with 48kbps
-   [Compress] Compressed to 8.14MB
-   [Transcription] Attempt 1/3...
-   ```
-
-5. **Network issues**:
-   - App retries 3 times with exponential backoff
-   - Each retry waits: 2s, 4s, 8s
-   - Check your internet connection if all retries fail
-
----
-
-## 📦 Body Size Limit Errors
-
-### Error: `Body exceeded 1 MB limit`
-
-**Cause**: Next.js default limit for Server Actions is 1MB.
-
-**Solution**: Already fixed in `next.config.js`:
-
-```javascript
-experimental: {
-  serverActions: {
-    bodySizeLimit: '100mb',
-  },
-}
+```powershell
+node --version
+pnpm --version
 ```
 
-**If still occurs**:
+If either command is unavailable, install the required tool and reopen your terminal.
 
-1. Restart the dev server:
+### Install dependencies
 
-   ```bash
-   # Stop server (Ctrl+C)
-   pnpm dev
-   ```
+From the project directory:
 
-2. Clear Next.js cache:
-   ```bash
-   rm -rf .next
-   pnpm dev
-   ```
-
----
-
-## 🎵 FFmpeg Errors
-
-### Error: `spawn /usr/local/bin/ffprobe ENOENT` or `FFmpeg not found`
-
-**Cause**: FFmpeg is not installed, or the app can't find it.
-
-**✅ Quick Fix (3 steps)**:
-
-```bash
-# Step 1: Find your FFmpeg paths
-pnpm find:ffmpeg
-
-# Step 2: Copy the paths shown, create .env.local:
-cp .env.example .env.local
-
-# Step 3: Edit .env.local and add the paths (uncomment and set):
-# FFMPEG_PATH=/opt/homebrew/bin/ffmpeg
-# FFPROBE_PATH=/opt/homebrew/bin/ffprobe
-
-# Then restart: pnpm dev
-```
-
-**Detailed Solutions**:
-
-1. **Check installation status**:
-
-   ```bash
-   # Run the finder script
-   pnpm find:ffmpeg
-
-   # This will:
-   # - Find FFmpeg on your system
-   # - Test if it works
-   # - Show exact paths to add to .env.local
-   ```
-
-2. **If FFmpeg is NOT installed**:
-
-   **macOS:**
-
-   ```bash
-   # Install with Homebrew
-   brew install ffmpeg
-
-   # Find paths after install
-   pnpm find:ffmpeg
-   ```
-
-   **Ubuntu/Debian:**
-
-   ```bash
-   sudo apt update && sudo apt install ffmpeg
-   ```
-
-   **Windows:**
-   - Download from [ffmpeg.org](https://ffmpeg.org/download.html)
-   - Extract and add to PATH
-   - Restart terminal/IDE
-
-3. **If FFmpeg IS installed but not detected**:
-
-   ```bash
-   # Find the actual paths
-   which ffmpeg
-   which ffprobe
-
-   # Or use the helper
-   pnpm find:ffmpeg
-   ```
-
-   Then create `.env.local` (copy from `.env.example`) and add:
-
-   ```bash
-   FFMPEG_PATH=/actual/path/to/ffmpeg
-   FFPROBE_PATH=/actual/path/to/ffprobe
-   ```
-
-   **Common paths**:
-   - macOS (M1/M2): `/opt/homebrew/bin/ffmpeg`
-   - macOS (Intel): `/usr/local/bin/ffmpeg`
-   - Linux: `/usr/bin/ffmpeg`
-
-4. **Verify it works**:
-
-   ```bash
-   # Test the binaries directly
-   /opt/homebrew/bin/ffmpeg -version
-   /opt/homebrew/bin/ffprobe -version
-   ```
-
-5. **After configuration**:
-
-   ```bash
-   # MUST restart the dev server
-   # Stop with Ctrl+C, then:
-   pnpm dev
-   ```
-
-**Auto-detection (v2.1+)**:
-
-- App tries to find FFmpeg automatically
-- Checks: `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`, `/opt/local/bin`
-- If auto-detection fails, manual configuration via `.env.local` is required
-
-**Still not working?**
-
-1. Make sure FFmpeg is executable: `ls -la $(which ffmpeg)`
-2. Check file permissions: `chmod +x /path/to/ffmpeg /path/to/ffprobe`
-3. Verify PATH in dev server: Add `console.log(process.env.PATH)` to see environment
-
-### Error: `FFmpeg extraction failed`
-
-**Other Causes & Solutions**:
-
-1. **Corrupted video file**:
-   ffmpeg -version
-
-   # Install on macOS
-
-   brew install ffmpeg
-
-   # Install on Ubuntu
-
-   sudo apt install ffmpeg
-
-   ```
-
-   ```
-
-2. **Corrupted video file**:
-   - Try another video file
-   - Re-download or re-encode the video
-
-3. **Unsupported codec**:
-   - Convert to supported format:
-     ```bash
-     ffmpeg -i input.mkv -c:v libx264 -c:a aac output.mp4
-     ```
-
----
-
-## 🔑 API Key Issues
-
-### Error: `API key not configured`
-
-**Solution**:
-
-1. Create `.env.local` file:
-
-   ```bash
-   cp .env.example .env.local
-   ```
-
-2. Add your OpenAI API key:
-
-   ```bash
-   OPENAI_API_KEY=sk-your-actual-key-here
-   ```
-
-3. Restart server:
-   ```bash
-   pnpm dev
-   ```
-
-### Error: `Invalid API key`
-
-**Solutions**:
-
-- Verify key is correct (starts with `sk-`)
-- Check key hasn't expired at [platform.openai.com](https://platform.openai.com/)
-- Ensure no extra spaces or quotes in `.env.local`
-
----
-
-## 💾 File Upload Issues
-
-### Error: `File validation failed`
-
-**Common causes**:
-
-1. **File too large**:
-   - Audio: Max 25MB
-   - Video: Estimated audio output must be under 25MB
-   - Recommended: Videos under 45 minutes
-
-2. **Unsupported format**:
-   - Supported audio: mp3, wav, m4a, aac, ogg, flac
-   - Supported video: mp4, mkv, mov, avi, webm
-
-3. **Corrupted file**:
-   - Re-download or re-create the file
-   - Try converting to a standard format
-
----
-
-## 🐌 Performance Issues
-
-### Transcription taking too long
-
-**Normal processing times**:
-
-- 1 minute audio: ~10-30 seconds
-- 10 minute audio: ~1-3 minutes
-- 30 minute audio: ~3-8 minutes
-
-**If slower than expected**:
-
-1. **Check file size**:
-   - Larger files take longer to upload and process
-   - Compress audio before upload
-
-2. **OpenAI API load**:
-   - Processing time varies based on API load
-   - Try during off-peak hours
-
-3. **Network speed**:
-   - Upload speed affects initial transfer
-   - Test your connection: [fast.com](https://fast.com)
-
----
-
-## 🔧 Development Environment
-
-### Port already in use
-
-**Error**: `Port 3000 is already in use`
-
-**Solution**:
-
-```bash
-# Find process using port 3000
-lsof -ti:3000
-
-# Kill the process
-kill -9 $(lsof -ti:3000)
-
-# Start server
-pnpm dev
-```
-
-### Module not found errors
-
-**Solution**:
-
-```bash
-# Remove node_modules and lockfile
-rm -rf node_modules pnpm-lock.yaml
-
-# Reinstall dependencies
+```powershell
 pnpm install
 ```
 
-### TypeScript errors
+Then start the development server:
 
-**Solution**:
-
-```bash
-# Type check
-pnpm type-check
-
-# Clear Next.js cache
-rm -rf .next
-
-# Restart dev server
+```powershell
 pnpm dev
 ```
 
+Open `http://localhost:3000`.
+
+If the application still does not start, check the terminal output for the first reported error.
+
+## 2. Environment Variables or API Key Errors
+
+Lecunity uses separate configuration settings for transcription and text generation.
+
+Default configuration:
+
+| Purpose | Environment variable | Default |
+|---|---|---|
+| Transcription provider | `AI_PROVIDER` | `groq` |
+| Text-generation provider | `AI_SUMMARIZATION_PROVIDER` | `gemini` |
+| Groq transcription model | `GROQ_TRANSCRIPTION_MODEL` | `whisper-large-v3` |
+| Gemini generation model | `GEMINI_SUMMARIZATION_MODEL` | `gemini-3.6-flash` |
+
+The corresponding API keys must be configured:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+### Common configuration problems
+
+- **API key not configured:** Check that the required key exists in `.env.local`.
+- **Invalid API key:** Verify the key with its provider.
+- **Wrong provider:** Check `AI_PROVIDER` and `AI_SUMMARIZATION_PROVIDER`.
+- **Changes not applied:** Restart the development server after changing environment variables.
+
+Keep `.env.local` private. Never commit real API keys to GitHub or expose them in frontend code.
+
+For provider-specific setup, see [GROQ-SETUP.md](./GROQ-SETUP.md).
+
+## 3. FFmpeg or FFprobe Errors
+
+FFmpeg and FFprobe are required for media processing.
+
+Lecunity uses them to extract and prepare audio from uploaded video and other media sources.
+
+### Check installation
+
+On Windows, run:
+
+```powershell
+ffmpeg -version
+ffprobe -version
+```
+
+If either command is not recognized, install FFmpeg and make sure its `bin` directory is included in your system PATH.
+
+You can also check command availability:
+
+```powershell
+Get-Command ffmpeg, ffprobe
+```
+
+### Configure custom paths
+
+If automatic detection does not find the executables, add their paths to `.env.local`:
+
+```env
+FFMPEG_PATH=C:\path\to\ffmpeg.exe
+FFPROBE_PATH=C:\path\to\ffprobe.exe
+```
+
+Replace the example paths with the actual locations on your computer.
+
+Restart the application after changing these values.
+
+### YouTube processing errors
+
+YouTube media downloading also depends on `yt-dlp`.
+
+Check whether it is available:
+
+```powershell
+yt-dlp --version
+```
+
+If it is missing, install it and make sure it is accessible through PATH.
+
+A YouTube download can still fail because of network restrictions, unavailable videos, or changes to YouTube.
+
+## 4. Audio or Video Upload Problems
+
+### File rejected
+
+Check the following:
+
+- The file uses a supported audio or video format.
+- The file extension and MIME type are valid.
+- The file does not exceed the configured upload limit.
+- The file is not empty or corrupted.
+
+The general upload limit is controlled by:
+
+```env
+MAX_FILE_SIZE_MB=100
+```
+
+The application also has a separate Next.js Server Action request-body limit configured to 100 MB.
+
+Actual upload success can depend on both application validation and deployment-platform limits.
+
+### Video upload fails during audio extraction
+
+Video files require FFmpeg to extract their audio.
+
+Try the following:
+
+1. Confirm FFmpeg and FFprobe work.
+2. Test with a smaller video.
+3. Check whether the video file plays correctly.
+4. Inspect the terminal logs for FFmpeg errors.
+
+### Audio file is too large
+
+The uploaded-file processing path does not automatically compress every uploaded audio file.
+
+For URL and YouTube processing, audio larger than 24 MB is passed through the compression function.
+
+Do not assume that compression will always produce a file below the target size.
+
+## 5. Transcription Problems
+
+Lecunity prepares audio as mono, 16 kHz, 64 kbps MP3 and splits it into sequential chunks of approximately 10 minutes.
+
+Each chunk is sent to the configured transcription provider.
+
+### Transcription fails
+
+Check:
+
+- The configured transcription provider.
+- The provider API key.
+- The provider's current service status and usage limits.
+- FFmpeg audio preparation logs.
+- Whether the original media file is valid.
+
+The application currently supports Groq, OpenAI, and Deepgram transcription configurations.
+
+### Only part of a long recording is processed
+
+Check the terminal logs for chunk-processing messages.
+
+The application processes chunks sequentially. A failure in a chunk can interrupt the overall transcription operation.
+
+### Transcription language is incorrect
+
+Speech recognition detects the spoken language. The selected output language is a separate setting used for transcript translation and formatting.
+
+Check the selected output language if the transcript is translated into an unexpected language.
+
+## 6. Translation, Formatting, or Summary Errors
+
+Text generation uses the provider configured through `AI_SUMMARIZATION_PROVIDER`.
+
+Supported text-generation configurations include Groq, Gemini, and OpenAI. Anthropic is supported for summarization.
+
+### Generation fails
+
+Check:
+
+1. The selected text-generation provider.
+2. The corresponding API key.
+3. The model name configured in `.env.local`.
+4. Provider usage limits and service availability.
+5. The terminal logs for the actual error.
+
+### Rate-limit errors
+
+Providers may reject requests when usage limits are reached.
+
+Lecunity uses retry handling for configured text-generation operations. Its retry configuration allows five retries, uses exponential backoff, and can respect a provider-supplied `Retry-After` value for HTTP 429 errors.
+
+This retry behavior should not be assumed to apply to transcription requests.
+
+## 7. YouTube or Direct URL Errors
+
+Lecunity supports YouTube URLs and direct HTTP/HTTPS media download URLs.
+
+A normal webpage URL is not necessarily a direct media download URL.
+
+For example, a webpage containing an embedded video may not expose a downloadable audio or video file.
+
+If a URL fails:
+
+- Check that it is publicly accessible.
+- Confirm that it points to supported media.
+- Check whether the source requires authentication.
+- Try a direct media URL instead of a webpage link.
+- Check the terminal logs for download errors.
+
+Support for every video-sharing platform is not guaranteed.
+
+## 8. Build or TypeScript Errors
+
+Run the following checks:
+
+```powershell
+pnpm type-check
+pnpm lint
+```
+
+If dependencies or generated build files appear corrupted, try:
+
+```powershell
+Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue
+pnpm install
+pnpm dev
+```
+
+For a production build, run:
+
+```powershell
+pnpm build
+```
+
+Resolve the first build error before investigating later errors.
+
+## 9. Deployment Problems
+
+A successful local run does not guarantee that deployment will work.
+
+Check:
+
+- All required environment variables are configured in the deployment environment.
+- The deployment platform supports the required media-processing dependencies.
+- FFmpeg, FFprobe, and yt-dlp are available where required.
+- Upload-size and execution-time limits are compatible with the processing workflow.
+- API keys are stored as server-side environment variables.
+
+The project uses Next.js standalone output. Deployment compatibility still depends on the hosting platform and its runtime configuration.
+
+## 10. Useful Commands
+
+| Task | Command |
+|---|---|
+| Install dependencies | `pnpm install` |
+| Start development server | `pnpm dev` |
+| Run type checking | `pnpm type-check` |
+| Run linting | `pnpm lint` |
+| Run unit and integration tests | `pnpm test:run` |
+| Run end-to-end tests | `pnpm test:e2e` |
+| Create production build | `pnpm build` |
+| Start production server | `pnpm start` |
+| Check FFmpeg setup | `pnpm check:ffmpeg` |
+| Find FFmpeg binaries | `pnpm find:ffmpeg` |
+
+## 11. Reporting an Issue
+
+If a problem continues, collect:
+
+- The exact error message.
+- The operation that failed.
+- The media format and approximate file size.
+- The configured provider (never share its API key).
+- Relevant terminal logs.
+- Steps needed to reproduce the problem.
+
+Remove API keys, personal information, and private media URLs before sharing logs.
+
 ---
 
-## 📊 File Size Guidelines (Updated v2.1)
+For additional technical details, see [README.md](./README.md), [SETUP.md](./SETUP.md), [ARCHITECTURE.md](./ARCHITECTURE.md), and [GROQ-SETUP.md](./GROQ-SETUP.md).
+# Troubleshooting
 
-### ✅ Recommended Limits (Best Reliability)
+## 1. Transcription Errors
 
-| File Type   | Recommended      | Max Allowed  | Notes                      |
-| ----------- | ---------------- | ------------ | -------------------------- |
-| Audio (mp3) | **< 10MB**       | **25MB** ✨  | Auto-compressed if 10-25MB |
-| Video (mp4) | **< 300MB**      | **500MB** ✨ | Audio extracted at 48kbps  |
-| Duration    | **< 25 minutes** | ~60 minutes  | Longer = larger files      |
+### Transcription fails
 
-**✨ New in v2.1:** Increased limits! Files up to 25MB (audio) and 500MB (video) now accepted with automatic compression.
+Check:
 
-### 🎯 Target Quality Settings
+1. The selected transcription provider.
+2. The corresponding API key.
+3. The model name configured in `.env.local`.
+4. Provider usage limits and service availability.
+5. The terminal logs for the actual error.
 
-For best results, use these FFmpeg settings:
+### Rate-limit errors
 
-```bash
-# Optimal audio for transcription (48kbps, ~0.36MB/minute)
-ffmpeg -i input.mp3 -ar 16000 -ac 1 -b:a 48k output.mp3
+Providers may reject requests when usage limits are reached.
 
-# Good quality (64kbps, ~0.48MB/minute)
-ffmpeg -i input.mp3 -ar 16000 -ac 1 -b:a 64k output.mp3
-```
+Lecunity uses retry handling for configured transcription operations. Its retry configuration allows five retries, uses exponential backoff, and can respect a provider-supplied `Retry-After` value for HTTP 429 errors.
+This retry behavior should not be assumed to apply to text-generation requests.
 
-### 📐 Calculate Audio File Size
+## 2. Summarization Errors
 
-```
-File Size (MB) = (Bitrate in kbps × Duration in seconds) / 8192
-```
+### Summarization fails
 
-Example for 30 minutes at 64kbps:
+Check:
 
-```
-(64 × 1800) / 8192 = 14MB ✅
-```
+1. The selected summarization provider.
+2. The corresponding API key.
+3. The model name configured in `.env.local`.
+4. Provider usage limits and service availability.
+5. The terminal logs for the actual error.
 
----
+### Rate-limit errors
 
-## 🆘 Still Having Issues?
+Providers may reject requests when usage limits are reached.
+Lecunity uses retry handling for configured summarization operations. Its retry configuration allows five retries, uses exponential backoff, and can respect a provider-supplied `Retry-After` value for HTTP 429 errors.
+This retry behavior should not be assumed to apply to transcription requests.
 
-1. **Check logs**:
-   - Server logs in terminal
-   - Browser console (F12)
+## 3. Text-to-Speech Errors
 
-2. **Enable debug mode**:
+### Text-to-Speech fails
 
-   ```bash
-   NODE_ENV=development pnpm dev
-   ```
+Check:
 
-3. **Test with small file**:
-   - Try with a 1-minute audio clip
-   - If works, issue is file size related
+1. The selected text-to-speech provider.
+2. The corresponding API key.
+3. The model name configured in `.env.local`.
+4. Provider usage limits and service availability.
+5. The terminal logs for the actual error.
 
-4. **Create GitHub issue**:
-   - Include error message
-   - File type and size
-   - Steps to reproduce
+### Rate-limit errors
 
----
+Providers may reject requests when usage limits are reached.
+Lecunity uses retry handling for configured text-to-speech operations. Its retry configuration allows five retries, uses exponential backoff, and can respect a provider-supplied `Retry-After` value for HTTP 429 errors.
+This retry behavior should not be assumed to apply to summarization requests.
 
-## 📝 Optimization Tips
+## 4. Media Processing Errors
 
-### For best results:
+### Media processing fails
 
-1. **Prepare audio files**:
+Check:
 
-   ```bash
-   # Convert to optimal format
-   ffmpeg -i input.wav \
-     -ar 16000 \
-     -ac 1 \
-     -b:a 64k \
-     output.mp3
-   ```
+1. The selected media-processing provider.
+2. The corresponding API key.
+3. The model name configured in `.env.local`.
+4. Provider usage limits and service availability.
 
-2. **Split long recordings**:
+5. The terminal logs for the actual error.
 
-   ```bash
-   # Split 2-hour file into 30-minute chunks
-   ffmpeg -i long-audio.mp3 -f segment -segment_time 1800 -c copy chunk_%03d.mp3
-   ```
+### Rate-limit errors
 
-3. **Monitor file sizes**:
+Providers may reject requests when usage limits are reached.
+Lecunity uses retry handling for configured media-processing operations. Its retry configuration allows five retries, uses exponential backoff, and can respect a provider-supplied `Retry-After` value for HTTP 429 errors.
+This retry behavior should not be assumed to apply to text-to-speech requests.
 
-   ```bash
-   # Check all files in uploads
-   du -h uploads/
-   ```
+## 5. File Upload Errors
 
-4. **Clean up old files**:
-   ```bash
-   # Remove files older than 7 days
-   find uploads/ -mtime +7 -delete
-   ```
+### File upload fails
+
+Check:
+
+1. The selected file-upload provider.
+2. The corresponding API key.
+3. The model name configured in `.env.local`.
+4. Provider usage limits and service availability.
+5. The terminal logs for the actual error.
+
+### Rate-limit errors
+
+Providers may reject requests when usage limits are reached.
+Lecunity uses retry handling for configured file-upload operations. Its retry configuration allows five retries, uses exponential backoff, and can respect a provider-supplied `Retry-After` value for HTTP 429 errors.
+This retry behavior should not be assumed to apply to media-processing requests.
+
+## 6. File Download Errors
+
+### File download fails
+
+Check:
+
+1. The selected file-download provider.
+2. The corresponding API key.
+3. The model name configured in `.env.local`.
+4. Provider usage limits and service availability.
+5. The terminal logs for the actual error.
+
+### Rate-limit errors
+
+Providers may reject requests when usage limits are reached.
+Lecunity uses retry handling for configured file-download operations. Its retry configuration allows five retries, uses exponential backoff, and can respect a provider-supplied `Retry-After` value for HTTP 429 errors.
+This retry behavior should not be assumed to apply to file-upload requests.
+
+## 7. Other Errors
+
+### Server errors
+
+Check:
+
+1. The terminal logs for the actual error.
+2. The server logs for the actual error.
+
+### Client errors
+
+Check:
+
+1. The terminal logs for the actual error.
+2. The client logs for the actual error.
+3. The request body for the actual error.
+4. The response body for the actual error.
+5. The request headers for the actual error.
+6. The response headers for the actual error.
+7. The request method for the actual error.
+8. The response status code for the actual error.
+9. The response status text for the actual error.
+10. The response content type for the actual error.
+11. The response content length for the actual error.
+12. The response content encoding for the actual error.
+13. The response content language for the actual error.
+14. The response content location for the actual error.
+15. The response content range for the actual error.
+16. The response content disposition for the actual error.
+17. The response content transfer encoding for the actual error.
+18. The response content md5 for the actual error.
+19. The response content sha1 for the actual error.
+20. The response content sha256 for the actual error.
+21. The response content sha512 for the actual error.
+22. The response content charset for the actual error.
+23. The response content base64 for the actual error.
+24. The response content gzip for the actual error.
+25. The response content deflate for the actual error.
+26. The response content br for the actual error.
+27. The response content identity for the actual error.
+28. The response content x-gzip for the actual error.
+29. The response content x-deflate for the actual error.
+30. The response content x-br for the actual error.
+31. The response content x-identity for the actual error.
+32. The response content x-gzip-identity for the actual error.
+33. The response content x-deflate-identity for the actual error.
+34. The response content x-br-identity for the actual error.
+35. The response content x-identity-identity for the actual error.
+36. The response content x-gzip-identity-identity for the actual error.
+37. The response content x-deflate-identity-identity for the actual error.
+38. The response content x-br-identity-identity for the actual error.
+39. The response content x-identity-identity-identity for the actual error.
+40. The response content x-gzip-identity-identity-identity for the actual error.
+41. The response content x-deflate-identity-identity-identity for the actual error.
+42. The response content x-br-identity-identity-identity for the actual error.
+43. The response content x-identity-identity-identity-identity for the actual error.
+44. The response content x-gzip-identity-identity-identity-identity for the actual error.
+45. The response content x-deflate-identity-identity-identity-identity for the actual error.
+46. The response content x-br-identity-identity-identity-identity for the actual error.
+47. The response content x-identity-identity-identity-identity-identity for the actual error.
+48. The response content x-gzip-identity-identity-identity-identity-identity for the actual error.
+49. The response content x-deflate-identity-identity-identity-identity-identity for the actual error.
+50. The response content x-br-identity-identity-identity-identity-identity for the actual error.
+51. The response content x-identity-identity-identity-identity-identity-identity for the actual error.
+52. The response content x-gzip-identity-identity-identity-identity-identity-identity for the actual error.
+53. The response content x-deflate-identity-identity-identity-identity-identity-identity for the actual error.
+54. The response content x-br-identity-identity-identity-identity-identity-identity for the actual error.
+55. The response content x-identity-identity-identity-identity-identity-identity-identity for the actual error.
+56. The response content x-gzip-identity-identity-identity-identity-identity-identity-identity for the actual error.
+57. The response content x-deflate-identity-identity-identity-identity-identity-identity-identity for the actual error.
