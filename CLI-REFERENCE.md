@@ -6,7 +6,7 @@ Complete command-line reference for Talk2Notes with quick cheatsheet.
 
 ```bash
 # Clone and start
-git clone https://github.com/taufiqelrahman/talk2notes.git
+git clone https://github.com/uxasad/Lecunity.git
 cd talk2notes
 pnpm install
 cp .env.example .env
@@ -352,4 +352,4 @@ NODE_ENV=production pnpm start
 
 ---
 
-**Need help?** Open an issue: https://github.com/taufiqelrahman/talk2notes/issues
+**Need help?** Open an issue: https://github.com/uxasad/Lecunity/issues

@@ -363,7 +363,7 @@ describe('Quiz Feature', () => {
 
   describe('Quiz in Different Languages', () => {
     it('should handle quiz questions in different languages', () => {
-      const indonesianQuiz: LectureNotes = {
+      const multilingualQuiz: LectureNotes = {
         ...mockNotesWithQuiz,
         quizQuestions: [
           {
@@ -375,7 +375,7 @@ describe('Quiz Feature', () => {
         ],
       };
 
-      render(<NotesDisplay notes={indonesianQuiz} />);
+      render(<NotesDisplay notes={multilingualQuiz} />);
       const quizTab = screen.getByRole('button', { name: /quiz/i });
       fireEvent.click(quizTab);
 

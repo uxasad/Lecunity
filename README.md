@@ -1,6 +1,6 @@
 # Talk2Notes 🎙️📝
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/taufiqelrahman/talk2notes/ci.yml?branch=main)](https://github.com/taufiqelrahman/talk2notes/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/taufiqelrahman/talk2notes/ci.yml?branch=main)](https://github.com/uxasad/Lecunity/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
@@ -54,7 +54,7 @@ Talk2Notes is an open-source web application that automatically transcribes audi
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/taufiqelrahman/talk2notes.git
+git clone https://github.com/uxasad/Lecunity.git
 cd talk2notes
 ```
 
@@ -577,8 +577,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📫 Issues: [GitHub Issues](https://github.com/taufiqelrahman/talk2notes/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/taufiqelrahman/talk2notes/discussions)
+- 📫 Issues: [GitHub Issues](https://github.com/uxasad/Lecunity/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/uxasad/Lecunity/discussions)
 - 📖 Docs: [Architecture Documentation](ARCHITECTURE.md)
 
 ## 🗺️ Roadmap

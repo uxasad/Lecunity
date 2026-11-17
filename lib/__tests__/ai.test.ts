@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getAIConfig,
@@ -9,7 +10,7 @@ import {
 import {
   buildSummarizationPrompt,
   FORMAT_PROMPTS,
-  TRANSLATE_TO_INDONESIAN_PROMPT,
+  TRANSLATE_PROMPTS,
 } from '@/lib/ai-prompts';
 
 const { mockCreate, mockTranscriptionsCreate } = vi.hoisted(() => ({
@@ -34,8 +35,20 @@ const MOCK_SUMMARY_RESPONSE = {
   summary: 'This is a test summary.',
   paragraphs: ['Paragraph one.', 'Paragraph two.'],
   bulletPoints: ['Point A', 'Point B'],
-  keyConcepts: [{ concept: 'Concept A', explanation: 'Explanation', importance: 'high' }],
-  definitions: [{ term: 'Term', definition: 'Definition', context: 'Context' }],
+  keyConcepts: [
+    {
+      concept: 'Concept A',
+      explanation: 'Explanation',
+      importance: 'high',
+    },
+  ],
+  definitions: [
+    {
+      term: 'Term',
+      definition: 'Definition',
+      context: 'Context',
+    },
+  ],
   exampleProblems: [],
   quizQuestions: [
     {
@@ -49,71 +62,73 @@ const MOCK_SUMMARY_RESPONSE = {
 };
 
 describe('AI prompts (ai-prompts.ts)', () => {
-  describe('TRANSLATE_TO_INDONESIAN_PROMPT', () => {
-    it('is a non-empty string', () => {
-      expect(typeof TRANSLATE_TO_INDONESIAN_PROMPT).toBe('string');
-      expect(TRANSLATE_TO_INDONESIAN_PROMPT.length).toBeGreaterThan(100);
-    });
-
-    it('contains key instructions for Islamic content', () => {
-      expect(TRANSLATE_TO_INDONESIAN_PROMPT).toContain('QS.');
-      expect(TRANSLATE_TO_INDONESIAN_PROMPT).toContain('HR.');
-      expect(TRANSLATE_TO_INDONESIAN_PROMPT).toContain('Bahasa Indonesia');
+  describe('TRANSLATE_PROMPTS', () => {
+    it('has non-empty prompts for all three supported languages', () => {
+      expect(TRANSLATE_PROMPTS.english.length).toBeGreaterThan(100);
+      expect(TRANSLATE_PROMPTS.urdu.length).toBeGreaterThan(100);
+      expect(TRANSLATE_PROMPTS['roman-urdu'].length).toBeGreaterThan(100);
     });
   });
 
   describe('FORMAT_PROMPTS', () => {
-    it('has prompts for all three languages', () => {
+    it('has prompts for all three supported languages', () => {
       expect(FORMAT_PROMPTS.english).toBeTruthy();
-      expect(FORMAT_PROMPTS.indonesian).toBeTruthy();
-      expect(FORMAT_PROMPTS.arabic).toBeTruthy();
+      expect(FORMAT_PROMPTS.urdu).toBeTruthy();
+      expect(FORMAT_PROMPTS['roman-urdu']).toBeTruthy();
     });
 
-    it('english prompt references Quran/Hadith formatting rules', () => {
-      expect(FORMAT_PROMPTS.english).toContain('QS. Surah Name: Verse');
-      expect(FORMAT_PROMPTS.english).toContain('HR. Narrator');
+    it('English prompt preserves original Quran/Hadith content', () => {
+      expect(FORMAT_PROMPTS.english).toContain(
+        'Preserve original Arabic Quran and Hadith text completely.'
+      );
+
+      expect(FORMAT_PROMPTS.english).toContain(
+        'Never invent Arabic quotations, Quranic verses, Hadith text, or references.'
+      );
     });
 
-    it('indonesian prompt is in Bahasa Indonesia', () => {
-      expect(FORMAT_PROMPTS.indonesian).toContain('JANGAN PERNAH');
-      expect(FORMAT_PROMPTS.indonesian).toContain('Quran/Hadits');
-    });
-
-    it('arabic prompt contains Arabic text', () => {
-      expect(FORMAT_PROMPTS.arabic).toContain('QS.');
-      expect(FORMAT_PROMPTS.arabic).toContain('HR.');
+    it('Urdu and Roman Urdu prompts preserve original Islamic references', () => {
+      expect(FORMAT_PROMPTS.urdu.length).toBeGreaterThan(100);
+      expect(FORMAT_PROMPTS['roman-urdu'].length).toBeGreaterThan(100);
     });
   });
 
   describe('buildSummarizationPrompt', () => {
-    it('contains correct language label for English', () => {
+    it('uses English as the output language when English is selected', () => {
       const prompt = buildSummarizationPrompt({ language: 'english' });
+
       expect(prompt).toContain('English');
-      expect(prompt).not.toContain('Bahasa Indonesia');
     });
 
-    it('contains correct language label for Indonesian', () => {
-      const prompt = buildSummarizationPrompt({ language: 'indonesian' });
-      expect(prompt).toContain('Bahasa Indonesia');
+    it('uses Urdu as the output language when Urdu is selected', () => {
+      const prompt = buildSummarizationPrompt({ language: 'urdu' });
+
+      expect(prompt).toContain('Urdu');
     });
 
-    it('contains correct language label for Arabic', () => {
-      const prompt = buildSummarizationPrompt({ language: 'arabic' });
-      expect(prompt).toContain('Arabic');
+    it('uses Roman Urdu as the output language when Roman Urdu is selected', () => {
+      const prompt = buildSummarizationPrompt({ language: 'roman-urdu' });
+
+      expect(prompt).toContain('Roman Urdu');
     });
 
     it('includes the detail level in the schema description', () => {
       const prompt = buildSummarizationPrompt({ detailLevel: 'concise' });
+
       expect(prompt).toContain('concise');
     });
 
     it('includes focus areas when specified', () => {
-      const prompt = buildSummarizationPrompt({ focusAreas: ['history', 'ethics'] });
+      const prompt = buildSummarizationPrompt({
+        focusAreas: ['history', 'ethics'],
+      });
+
       expect(prompt).toContain('history, ethics');
     });
 
-    it('uses sane defaults when no options provided', () => {
+    it('uses sane defaults when no options are provided', () => {
       const prompt = buildSummarizationPrompt({});
+
       expect(prompt).toContain('detailed');
       expect(prompt).toContain('all topics');
       expect(prompt).toContain('English');
@@ -121,6 +136,7 @@ describe('AI prompts (ai-prompts.ts)', () => {
 
     it('returns a valid JSON schema structure description', () => {
       const prompt = buildSummarizationPrompt({});
+
       expect(prompt).toContain('"title"');
       expect(prompt).toContain('"summary"');
       expect(prompt).toContain('"quizQuestions"');
@@ -132,6 +148,7 @@ describe('AI prompts (ai-prompts.ts)', () => {
 describe('getAIConfig', () => {
   it('returns groq config from test environment', () => {
     const config = getAIConfig();
+
     expect(config.provider).toBe('groq');
     expect(config.transcriptionModel).toBe('whisper-large-v3');
     expect(config.summarizationModel).toBe('openai/gpt-oss-20b');
@@ -140,6 +157,7 @@ describe('getAIConfig', () => {
 
   it('has all required fields', () => {
     const config = getAIConfig();
+
     expect(config).toMatchObject({
       provider: expect.any(String),
       transcriptionModel: expect.any(String),
@@ -152,25 +170,39 @@ describe('getAIConfig', () => {
 describe('getSummarizationConfig', () => {
   it('falls back to getAIConfig when AI_SUMMARIZATION_PROVIDER is unset', () => {
     const config = getSummarizationConfig();
+
     expect(config).toEqual(getAIConfig());
   });
 
   it('returns gemini config when AI_SUMMARIZATION_PROVIDER is gemini', () => {
-    const original = process.env.AI_SUMMARIZATION_PROVIDER;
+    const originalProvider = process.env.AI_SUMMARIZATION_PROVIDER;
     const originalKey = process.env.GEMINI_API_KEY;
-    process.env.AI_SUMMARIZATION_PROVIDER = 'gemini';
-    process.env.GEMINI_API_KEY = 'test-gemini-key';
 
-    const config = getSummarizationConfig();
-    expect(config.provider).toBe('gemini');
-    expect(config.summarizationModel).toBe('gemini-3.6-flash');
-    expect(config.apiKey).toBe('test-gemini-key');
+    try {
+      process.env.AI_SUMMARIZATION_PROVIDER = 'gemini';
+      process.env.GEMINI_API_KEY = 'test-gemini-key';
 
-    // Transcription config is untouched by the summarization provider switch
-    expect(getAIConfig().provider).toBe('groq');
+      const config = getSummarizationConfig();
 
-    process.env.AI_SUMMARIZATION_PROVIDER = original;
-    process.env.GEMINI_API_KEY = originalKey;
+      expect(config.provider).toBe('gemini');
+      expect(config.summarizationModel).toBe('gemini-3.6-flash');
+      expect(config.apiKey).toBe('test-gemini-key');
+
+      // Transcription config is untouched by the summarization provider switch.
+      expect(getAIConfig().provider).toBe('groq');
+    } finally {
+      if (originalProvider === undefined) {
+        delete process.env.AI_SUMMARIZATION_PROVIDER;
+      } else {
+        process.env.AI_SUMMARIZATION_PROVIDER = originalProvider;
+      }
+
+      if (originalKey === undefined) {
+        delete process.env.GEMINI_API_KEY;
+      } else {
+        process.env.GEMINI_API_KEY = originalKey;
+      }
+    }
   });
 });
 
@@ -179,34 +211,41 @@ describe('translateTranscript', () => {
     vi.clearAllMocks();
   });
 
-  it('returns the original transcript unchanged for English', async () => {
-    const input = 'This is an English transcript.';
-    const result = await translateTranscript(input, 'english');
-    expect(result).toBe(input);
-    expect(mockCreate).not.toHaveBeenCalled();
-  });
+  it.each([
+    ['English', 'english'],
+    ['Urdu', 'urdu'],
+    ['Roman Urdu', 'roman-urdu'],
+  ] as const)(
+    'calls the LLM API for %s translation',
+    async (_label, language) => {
+      const translated = 'Translated lecture transcript.';
 
-  it('calls the LLM API for Indonesian translation', async () => {
-    const translated = 'Ini adalah transkrip yang diterjemahkan.';
-    mockCreate.mockResolvedValueOnce({
-      choices: [{ message: { content: translated } }],
-    });
+      mockCreate.mockResolvedValueOnce({
+        choices: [{ message: { content: translated } }],
+      });
 
-    const result = await translateTranscript('This is an English transcript.', 'indonesian');
-    expect(result).toBe(translated);
-    expect(mockCreate).toHaveBeenCalledOnce();
+      const input = 'This is an English transcript.';
+      const result = await translateTranscript(input, language);
 
-    const callArgs = mockCreate.mock.calls[0][0];
-    expect(callArgs.messages[0].role).toBe('system');
-    expect(callArgs.messages[0].content).toBe(TRANSLATE_TO_INDONESIAN_PROMPT);
-    expect(callArgs.messages[1].content).toBe('This is an English transcript.');
-  });
+      expect(result).toBe(translated);
+      expect(mockCreate).toHaveBeenCalledOnce();
 
-  it('falls back to original transcript when API call fails', async () => {
+      const callArgs = mockCreate.mock.calls[0][0];
+
+      expect(callArgs.messages[0].role).toBe('system');
+      expect(callArgs.messages[0].content).toBe(
+        TRANSLATE_PROMPTS[language]
+      );
+      expect(callArgs.messages[1].content).toBe(input);
+    }
+  );
+
+  it('throws when the translation API call fails', async () => {
     mockCreate.mockRejectedValueOnce(new Error('Network error'));
-    const input = 'Original transcript.';
-    const result = await translateTranscript(input, 'indonesian');
-    expect(result).toBe(input);
+
+    await expect(
+      translateTranscript('Original transcript.', 'urdu')
+    ).rejects.toThrow();
   });
 });
 
@@ -217,45 +256,73 @@ describe('formatTranscript', () => {
 
   it('returns basic paragraphs when API key is empty', async () => {
     const originalKey = process.env.GROQ_API_KEY;
-    process.env.GROQ_API_KEY = '';
 
-    const longText = Array.from(
-      { length: 10 },
-      () => 'This is a sentence. It provides content for the test. Here is another sentence.'
-    ).join(' ');
+    try {
+      process.env.GROQ_API_KEY = '';
 
-    const result = await formatTranscript(longText);
-    expect(result).toBeTruthy();
-    expect(mockCreate).not.toHaveBeenCalled();
+      const longText = Array.from(
+        { length: 10 },
+        () =>
+          'This is a sentence. It provides content for the test. Here is another sentence.'
+      ).join(' ');
 
-    process.env.GROQ_API_KEY = originalKey;
+      const result = await formatTranscript(longText);
+
+      expect(result).toBeTruthy();
+      expect(mockCreate).not.toHaveBeenCalled();
+    } finally {
+      if (originalKey === undefined) {
+        delete process.env.GROQ_API_KEY;
+      } else {
+        process.env.GROQ_API_KEY = originalKey;
+      }
+    }
   });
 
   it('calls the LLM API when API key is present', async () => {
     const formatted = '## Section 1\n\nFormatted text.';
+
     mockCreate.mockResolvedValueOnce({
       choices: [{ message: { content: formatted } }],
     });
 
     const result = await formatTranscript('Short transcript.', 'english');
+
     expect(result).toBe(formatted);
     expect(mockCreate).toHaveBeenCalledOnce();
   });
 
-  it('passes the correct system prompt for each language', async () => {
-    mockCreate.mockResolvedValue({ choices: [{ message: { content: 'formatted' } }] });
+  it('passes the correct system prompt for each supported language', async () => {
+    mockCreate.mockResolvedValue({
+      choices: [{ message: { content: 'formatted' } }],
+    });
 
-    for (const lang of ['english', 'indonesian', 'arabic'] as const) {
+    const languages = ['english', 'urdu', 'roman-urdu'] as const;
+
+    for (const language of languages) {
       vi.clearAllMocks();
-      await formatTranscript('transcript', lang);
+
+      mockCreate.mockResolvedValueOnce({
+        choices: [{ message: { content: 'formatted' } }],
+      });
+
+      await formatTranscript('transcript', language);
+
       const callArgs = mockCreate.mock.calls[0][0];
-      expect(callArgs.messages[0].content).toBe(FORMAT_PROMPTS[lang]);
+
+      expect(callArgs.messages[0].content).toBe(
+        FORMAT_PROMPTS[language]
+      );
     }
   });
 
   it('falls back to basic paragraphs on API error', async () => {
     mockCreate.mockRejectedValueOnce(new Error('API error'));
-    const result = await formatTranscript('Sentence one. Sentence two.');
+
+    const result = await formatTranscript(
+      'Sentence one. Sentence two.'
+    );
+
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
   });
@@ -268,21 +335,33 @@ describe('summarizeTranscript', () => {
 
   it('throws when API key is not configured', async () => {
     const originalKey = process.env.GROQ_API_KEY;
-    process.env.GROQ_API_KEY = '';
 
-    await expect(summarizeTranscript('transcript', 'file.mp3')).rejects.toThrow(
-      'API key not configured'
-    );
+    try {
+      process.env.GROQ_API_KEY = '';
 
-    process.env.GROQ_API_KEY = originalKey;
+      await expect(
+        summarizeTranscript('transcript', 'file.mp3')
+      ).rejects.toThrow('API key not configured');
+    } finally {
+      if (originalKey === undefined) {
+        delete process.env.GROQ_API_KEY;
+      } else {
+        process.env.GROQ_API_KEY = originalKey;
+      }
+    }
   });
 
   it('parses and returns a valid LectureNotes object', async () => {
     mockCreate.mockResolvedValueOnce({
-      choices: [{ message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } }],
+      choices: [
+        { message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } },
+      ],
     });
 
-    const result = await summarizeTranscript('Lecture content goes here.', 'lecture.mp3');
+    const result = await summarizeTranscript(
+      'Lecture content goes here.',
+      'lecture.mp3'
+    );
 
     expect(result.title).toBe('Test Lecture');
     expect(result.summary).toBe('This is a test summary.');
@@ -295,25 +374,44 @@ describe('summarizeTranscript', () => {
 
   it('condenses long transcripts in chunks instead of cropping', async () => {
     const longTranscript = 'word. '.repeat(40000);
+
     mockCreate.mockImplementation(async (args: any) =>
       args.response_format
-        ? { choices: [{ message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } }] }
+        ? {
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify(MOCK_SUMMARY_RESPONSE),
+                },
+              },
+            ],
+          }
         : { choices: [{ message: { content: 'digest' } }] }
     );
 
-    const result = await summarizeTranscript(longTranscript, 'long-lecture.mp3');
+    const result = await summarizeTranscript(
+      longTranscript,
+      'long-lecture.mp3'
+    );
 
     expect(mockCreate.mock.calls.length).toBeGreaterThan(2);
     expect(result.summary).not.toContain('cropped');
+
     mockCreate.mockReset();
   });
 
   it('includes word count and model info in metadata', async () => {
     mockCreate.mockResolvedValueOnce({
-      choices: [{ message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } }],
+      choices: [
+        { message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } },
+      ],
     });
 
-    const result = await summarizeTranscript('one two three', 'test.mp3');
+    const result = await summarizeTranscript(
+      'one two three',
+      'test.mp3'
+    );
+
     expect(result.metadata.wordCount).toBe(3);
     expect(result.metadata.transcriptionModel).toBeTruthy();
     expect(result.metadata.summarizationModel).toBeTruthy();
@@ -321,28 +419,44 @@ describe('summarizeTranscript', () => {
 
   it('respects custom summarization options', async () => {
     mockCreate.mockResolvedValueOnce({
-      choices: [{ message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } }],
+      choices: [
+        { message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } },
+      ],
     });
 
     await summarizeTranscript('transcript', 'file.mp3', {
-      language: 'indonesian',
+      language: 'urdu',
       detailLevel: 'concise',
       focusAreas: ['ethics'],
     });
 
     const callArgs = mockCreate.mock.calls[0][0];
     const systemPrompt = callArgs.messages[0].content as string;
-    expect(systemPrompt).toContain('Bahasa Indonesia');
+
+    expect(systemPrompt).toContain('Urdu');
     expect(systemPrompt).toContain('concise');
     expect(systemPrompt).toContain('ethics');
   });
 
   it('returns empty arrays for missing fields in the API response', async () => {
     mockCreate.mockResolvedValueOnce({
-      choices: [{ message: { content: JSON.stringify({ title: 'Minimal', summary: 'Short.' }) } }],
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              title: 'Minimal',
+              summary: 'Short.',
+            }),
+          },
+        },
+      ],
     });
 
-    const result = await summarizeTranscript('transcript', 'file.mp3');
+    const result = await summarizeTranscript(
+      'transcript',
+      'file.mp3'
+    );
+
     expect(result.paragraphs).toEqual([]);
     expect(result.bulletPoints).toEqual([]);
     expect(result.keyConcepts).toEqual([]);

@@ -522,4 +522,4 @@ This architecture is designed to be:
 - **Type-safe**: TypeScript throughout server layer
 - **Developer-friendly**: Consistent patterns and good documentation
 
-For questions or discussions about architecture decisions, please open a [GitHub Discussion](https://github.com/taufiqelrahman/talk2notes/discussions).
+For questions or discussions about architecture decisions, please open a [GitHub Discussion](https://github.com/uxasad/Lecunity/discussions).

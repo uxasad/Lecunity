@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -28,7 +29,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [inputMode, setInputMode] = useState<'file' | 'youtube' | 'url'>('file');
-  const [language, setLanguage] = useState<'english' | 'indonesian' | 'arabic'>('english');
+  const [language, setLanguage] = useState<'english' | 'urdu' | 'roman-urdu'>('english');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Rate limit display
@@ -204,7 +205,12 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           saveToHistory({
             title: result.data.title || 'YouTube Video',
             notes: result.data,
-            language: language === 'indonesian' ? 'id' : language === 'arabic' ? 'ar' : 'en',
+            language:
+              language === 'urdu'
+                ? 'ur'
+                : language === 'roman-urdu'
+                  ? 'roman-urdu'
+                  : 'en',
             source: 'youtube',
             youtubeUrl,
           });
@@ -244,7 +250,12 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           saveToHistory({
             title: result.data.title || 'Media from URL',
             notes: result.data,
-            language: language === 'indonesian' ? 'id' : language === 'arabic' ? 'ar' : 'en',
+            language:
+              language === 'urdu'
+                ? 'ur'
+                : language === 'roman-urdu'
+                  ? 'roman-urdu'
+                  : 'en',
             source: 'url',
             mediaUrl,
           });
@@ -326,7 +337,12 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           saveToHistory({
             title: result.data.title || selectedFile!.name,
             notes: result.data,
-            language: language === 'indonesian' ? 'id' : language === 'arabic' ? 'ar' : 'en',
+            language:
+              language === 'urdu'
+                ? 'ur'
+                : language === 'roman-urdu'
+                  ? 'roman-urdu'
+                  : 'en',
             source: 'file',
             filename: selectedFile!.name,
           });
@@ -614,8 +630,9 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           !isUploading && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Output Language / Bahasa Output
+                Output Language
               </label>
+
               <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
@@ -629,33 +646,36 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                   <span className="text-2xl mr-2">🇬🇧</span>
                   <span>English</span>
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => setLanguage('indonesian')}
+                  onClick={() => setLanguage('urdu')}
                   className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
-                    language === 'indonesian'
+                    language === 'urdu'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
                 >
-                  <span className="text-2xl mr-2">🇮🇩</span>
-                  <span>Bahasa Indonesia</span>
+                  <span className="text-2xl mr-2">🇵🇰</span>
+                  <span>اردو</span>
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => setLanguage('arabic')}
+                  onClick={() => setLanguage('roman-urdu')}
                   className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
-                    language === 'arabic'
+                    language === 'roman-urdu'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
                 >
-                  <span className="text-2xl mr-2">🇸🇦</span>
-                  <span>العربية</span>
+                  <span className="text-2xl mr-2">🇵🇰</span>
+                  <span>Roman Urdu</span>
                 </button>
               </div>
+
               <p className="text-xs text-gray-500 mt-1">
-                📖 Arabic text (Quran/Hadith) will be preserved with transliteration and translation
+                Original Arabic Quran and Hadith quotations will be preserved.
               </p>
             </div>
           )}

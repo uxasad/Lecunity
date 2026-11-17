@@ -138,7 +138,7 @@ You need an API key from one of these providers:
 ### 5. Clone the Repository
 
 ```bash
-git clone https://github.com/taufiqelrahman/talk2notes.git
+git clone https://github.com/uxasad/Lecunity.git
 cd talk2notes
 ```
 
@@ -387,8 +387,8 @@ Once installed:
 ## Getting Help
 
 - **Documentation:** [README.md](README.md)
-- **Issues:** [GitHub Issues](https://github.com/taufiqelrahman/talk2notes/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/taufiqelrahman/talk2notes/discussions)
+- **Issues:** [GitHub Issues](https://github.com/uxasad/Lecunity/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/uxasad/Lecunity/discussions)
 
 ## pnpm Package Manager Guide
 

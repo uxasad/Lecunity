@@ -296,8 +296,8 @@ Update these files as needed:
 
 ## 📧 Questions?
 
-- Open a [Discussion](https://github.com/taufiqelrahman/talk2notes/discussions)
-- Check existing [Issues](https://github.com/taufiqelrahman/talk2notes/issues)
+- Open a [Discussion](https://github.com/uxasad/Lecunity/discussions)
+- Check existing [Issues](https://github.com/uxasad/Lecunity/issues)
 - Review the [Architecture docs](ARCHITECTURE.md)
 
 ## 🎉 Recognition

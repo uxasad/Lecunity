@@ -146,7 +146,7 @@ export async function transcribeWithDeepgram(
 
     const audioBuffer = await fs.readFile(audioPath);
     const response = await fetch(
-      `https://api.deepgram.com/v1/listen?model=${config.transcriptionModel}&smart_format=true&punctuate=true&paragraphs=true`,
+      `https://api.deepgram.com/v1/listen?model=${config.transcriptionModel}&detect_language=true&smart_format=true&punctuate=true&paragraphs=true`,
       {
         method: 'POST',
         headers: { Authorization: `Token ${config.apiKey}`, 'Content-Type': 'audio/mp3' },

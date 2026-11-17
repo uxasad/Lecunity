@@ -16,7 +16,7 @@ Get Talk2Notes running in 5 minutes with **free Groq API** (no credit card neede
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/taufiqelrahman/talk2notes.git
+git clone https://github.com/uxasad/Lecunity.git
 cd talk2notes
 pnpm install
 ```
@@ -366,8 +366,8 @@ lsof -ti:3000 | xargs kill
 
 ## Getting Help
 
-- **Issues:** https://github.com/taufiqelrahman/talk2notes/issues
-- **Discussions:** https://github.com/taufiqelrahman/talk2notes/discussions
+- **Issues:** https://github.com/uxasad/Lecunity/issues
+- **Discussions:** https://github.com/uxasad/Lecunity/discussions
 
 ## Advanced Usage
 

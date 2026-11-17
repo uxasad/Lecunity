@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,6 +7,31 @@ import { getHistory, deleteFromHistory, clearHistory, formatTimestamp } from '@/
 
 interface HistoryProps {
   onSelectItem: (notes: LectureNotes) => void;
+}
+
+function getLanguageLabel(language: string): string {
+  switch (language) {
+    case 'ur':
+    case 'urdu':
+      return '🇵🇰 Urdu';
+
+    case 'roman-urdu':
+      return '🇵🇰 Roman Urdu';
+
+    case 'en':
+    case 'english':
+      return '🇬🇧 English';
+
+    // Keep older saved history entries readable.
+    case 'id':
+      return '🇮🇩 Indonesian (Legacy)';
+
+    case 'ar':
+      return '🇸🇦 Arabic (Legacy)';
+
+    default:
+      return 'Unknown';
+  }
 }
 
 export default function History({ onSelectItem }: HistoryProps) {
@@ -19,7 +45,7 @@ export default function History({ onSelectItem }: HistoryProps) {
   useEffect(() => {
     loadHistory();
 
-    // Listen for storage events to sync across tabs
+    // Listen for storage events to sync across tabs.
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'talk2notes_history') {
         loadHistory();
@@ -28,7 +54,7 @@ export default function History({ onSelectItem }: HistoryProps) {
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Custom event for same-tab updates
+    // Custom event for same-tab updates.
     const handleHistoryUpdate = () => loadHistory();
     window.addEventListener('historyUpdated', handleHistoryUpdate);
 
@@ -55,7 +81,7 @@ export default function History({ onSelectItem }: HistoryProps) {
   const handleSelectItem = (item: HistoryItem) => {
     onSelectItem(item.notes);
 
-    // Save as last result for auto-load
+    // Save as last result for auto-load.
     try {
       localStorage.setItem('talk2notes_last_result', JSON.stringify(item.notes));
     } catch (error) {
@@ -88,6 +114,7 @@ export default function History({ onSelectItem }: HistoryProps) {
         <h2 className="text-lg font-semibold text-gray-900">
           History <span className="text-sm font-normal text-gray-500">({history.length})</span>
         </h2>
+
         {history.length > 0 && (
           <button
             onClick={() => setShowConfirmClear(true)}
@@ -132,6 +159,7 @@ export default function History({ onSelectItem }: HistoryProps) {
                 <h3 className="font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">
                   {item.title}
                 </h3>
+
                 <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                   <span className="flex items-center gap-1">
                     {item.source === 'youtube' ? (
@@ -167,25 +195,25 @@ export default function History({ onSelectItem }: HistoryProps) {
                         />
                       </svg>
                     )}
+
                     <span className="capitalize">
                       {item.source === 'url' ? 'Media URL' : item.source}
                     </span>
                   </span>
+
                   <span>•</span>
-                  <span>
-                    {item.language === 'id'
-                      ? '🇮🇩 Indonesian'
-                      : item.language === 'ar'
-                        ? '🇸🇦 Arabic'
-                        : '🇬🇧 English'}
-                  </span>
+                  <span>{getLanguageLabel(item.language)}</span>
                   <span>•</span>
                   <span>{formatTimestamp(item.timestamp)}</span>
                 </div>
+
                 {item.notes.summary && (
-                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{item.notes.summary}</p>
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                    {item.notes.summary}
+                  </p>
                 )}
               </div>
+
               <button
                 onClick={(e) => handleDelete(item.id, e)}
                 className="flex-shrink-0 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"

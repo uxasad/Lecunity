@@ -1,8 +1,13 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import type { MutationResult, LectureNotes, UploadedFile, ProcessingState } from '@/types';
+import type {
+  MutationResult,
+  LectureNotes,
+  ProcessingState,
+} from '@/types';
 import { validateFile } from '@/utils/validateFile';
 import {
   extractAudioFromVideo,
@@ -11,24 +16,45 @@ import {
   checkFFmpegAvailable,
   getFFmpegValidationDetails,
 } from '@/lib/ffmpeg';
-import { transcribeAudioChunked as transcribeAudio, summarizeTranscript, translateTranscript } from '@/lib/ai';
+import {
+  transcribeAudioChunked as transcribeAudio,
+  summarizeTranscript,
+  translateTranscript,
+  formatTranscript,
+} from '@/lib/ai';
 import { saveUploadedFile, cleanupUploadedFile } from '@/lib/upload';
 import { promises as fs } from 'fs';
-import { rateLimiter, RATE_LIMITS, getClientId, formatTimeRemaining } from '@/lib/rate-limiter';
-import { downloadMediaFromUrl, isValidMediaUrl } from '@/lib/media-downloader';
-import { downloadYoutubeAudio, isValidYoutubeUrl } from '@/lib/youtube';
-import { formatTranscript } from '@/lib/ai';
+import {
+  rateLimiter,
+  RATE_LIMITS,
+  getClientId,
+  formatTimeRemaining,
+} from '@/lib/rate-limiter';
+import {
+  downloadMediaFromUrl,
+  isValidMediaUrl,
+} from '@/lib/media-downloader';
+import {
+  downloadYoutubeAudio,
+  isValidYoutubeUrl,
+} from '@/lib/youtube';
 import { formatApiError } from '@/utils/format-api-error';
+
+type OutputLanguage = 'english' | 'urdu' | 'roman-urdu';
 
 export async function createTranscriptionMutation(
   formData: FormData
 ): Promise<MutationResult<LectureNotes>> {
   try {
-    // Get client identifier for rate limiting
+    // Get client identifier for rate limiting.
     const headersList = await headers();
-    const clientId = getClientId(new Request('http://localhost', { headers: headersList }));
+    const clientId = getClientId(
+      new Request('http://localhost', {
+        headers: headersList,
+      })
+    );
 
-    // Check hourly rate limit (10 transcriptions per hour)
+    // Check hourly rate limit (10 transcriptions per hour).
     const hourlyAllowed = rateLimiter.check(
       `transcription:hourly:${clientId}`,
       RATE_LIMITS.TRANSCRIPTION.MAX_REQUESTS,
@@ -36,15 +62,21 @@ export async function createTranscriptionMutation(
     );
 
     if (!hourlyAllowed) {
-      const status = rateLimiter.getStatus(`transcription:hourly:${clientId}`);
-      const resetIn = status ? formatTimeRemaining(status.resetTime) : 'soon';
+      const status = rateLimiter.getStatus(
+        `transcription:hourly:${clientId}`
+      );
+
+      const resetIn = status
+        ? formatTimeRemaining(status.resetTime)
+        : 'soon';
+
       return {
         success: false,
         error: `Rate limit exceeded. You can only transcribe ${RATE_LIMITS.TRANSCRIPTION.MAX_REQUESTS} files per hour on the free tier. Please try again in ${resetIn}.`,
       };
     }
 
-    // Check daily rate limit (50 transcriptions per day)
+    // Check daily rate limit (50 transcriptions per day).
     const dailyAllowed = rateLimiter.check(
       `transcription:daily:${clientId}`,
       RATE_LIMITS.DAILY.MAX_TRANSCRIPTIONS,
@@ -52,8 +84,14 @@ export async function createTranscriptionMutation(
     );
 
     if (!dailyAllowed) {
-      const status = rateLimiter.getStatus(`transcription:daily:${clientId}`);
-      const resetIn = status ? formatTimeRemaining(status.resetTime) : 'tomorrow';
+      const status = rateLimiter.getStatus(
+        `transcription:daily:${clientId}`
+      );
+
+      const resetIn = status
+        ? formatTimeRemaining(status.resetTime)
+        : 'tomorrow';
+
       return {
         success: false,
         error: `Daily limit exceeded. You can transcribe up to ${RATE_LIMITS.DAILY.MAX_TRANSCRIPTIONS} files per day on the free tier. Resets in ${resetIn}.`,
@@ -63,7 +101,15 @@ export async function createTranscriptionMutation(
     const file = formData.get('file') as File | null;
     const youtubeUrl = formData.get('youtubeUrl') as string | null;
     const mediaUrl = formData.get('mediaUrl') as string | null;
-    const language = (formData.get('language') as 'english' | 'indonesian') || 'english';
+
+    // Accept only the three supported output languages.
+    const requestedLanguage = formData.get('language');
+
+    const language: OutputLanguage =
+      requestedLanguage === 'urdu' ||
+      requestedLanguage === 'roman-urdu'
+        ? requestedLanguage
+        : 'english';
 
     if (!file && !youtubeUrl && !mediaUrl) {
       return {
@@ -72,7 +118,7 @@ export async function createTranscriptionMutation(
       };
     }
 
-    // Handle Media URL (generic URL download)
+    // Handle generic media URL.
     if (mediaUrl) {
       if (!isValidMediaUrl(mediaUrl)) {
         return {
@@ -81,7 +127,11 @@ export async function createTranscriptionMutation(
         };
       }
 
-      let downloadedAudio: { audioPath: string; title: string } | null = null;
+      let downloadedAudio: {
+        audioPath: string;
+        title: string;
+      } | null = null;
+
       let compressedAudio: string | null = null;
 
       try {
@@ -90,50 +140,63 @@ export async function createTranscriptionMutation(
         let audioPath = downloadedAudio.audioPath;
         const originalFilename = `${downloadedAudio.title}.mp3`;
 
-        // Check file size and compress if needed (Groq limit is ~25MB)
+        // Check file size and compress if needed.
         const stats = await fs.stat(audioPath);
         const fileSizeMB = stats.size / (1024 * 1024);
 
-        console.log(`[MediaURL] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`);
+        console.log(
+          `[MediaURL] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`
+        );
 
         if (fileSizeMB > 24) {
           console.log('[MediaURL] Audio too large, compressing...');
-          compressedAudio = await compressAudioIfNeeded(audioPath, 24);
+
+          compressedAudio = await compressAudioIfNeeded(
+            audioPath,
+            24
+          );
+
           audioPath = compressedAudio;
 
           const newStats = await fs.stat(audioPath);
           const newSizeMB = newStats.size / (1024 * 1024);
-          console.log(`[MediaURL] Compressed audio size: ${newSizeMB.toFixed(2)}MB`);
+
+          console.log(
+            `[MediaURL] Compressed audio size: ${newSizeMB.toFixed(2)}MB`
+          );
         }
 
-        // Transcribe
-        const languageMap: Record<string, string> = {
-          indonesian: 'id',
-          arabic: 'ar',
-          english: 'en',
-        };
-        const transcriptionResult = await transcribeAudio(audioPath, {
-          language: languageMap[language] || 'en',
-        });
+        // Automatically detect the original audio language.
+        const transcriptionResult = await transcribeAudio(
+          audioPath,
+          {
+            temperature: 0,
+          }
+        );
 
-        // Translate if Indonesian
-        let transcriptText = transcriptionResult.text;
-        if (language === 'indonesian') {
-          transcriptText = await translateTranscript(transcriptText, 'indonesian');
-        }
+        // Translate transcript into the selected output language.
+        const transcriptText = await translateTranscript(
+          transcriptionResult.text,
+          language
+        );
 
-        // Format transcript with paragraphs and sections
-        const [formattedTranscript, lectureNotes] = await Promise.all([
-          formatTranscript(transcriptText, language),
-          summarizeTranscript(transcriptText, originalFilename, {
-            language,
-            detailLevel: 'detailed',
-          }),
-        ]);
+        // Format transcript and generate lecture notes.
+        const [formattedTranscript, lectureNotes] =
+          await Promise.all([
+            formatTranscript(transcriptText, language),
+            summarizeTranscript(transcriptText, originalFilename, {
+              language,
+              detailLevel: 'detailed',
+            }),
+          ]);
 
-        // Cleanup
+        // Cleanup temporary downloaded audio.
         await cleanupUploadedFile(downloadedAudio.audioPath);
-        if (compressedAudio && compressedAudio !== downloadedAudio.audioPath) {
+
+        if (
+          compressedAudio &&
+          compressedAudio !== downloadedAudio.audioPath
+        ) {
           await cleanupUploadedFile(compressedAudio);
         }
 
@@ -150,18 +213,27 @@ export async function createTranscriptionMutation(
           },
         };
       } catch (error) {
-        // Cleanup on error
+        // Cleanup on error.
         if (downloadedAudio?.audioPath) {
-          await cleanupUploadedFile(downloadedAudio.audioPath).catch(() => {});
+          await cleanupUploadedFile(
+            downloadedAudio.audioPath
+          ).catch(() => {});
         }
-        if (compressedAudio && compressedAudio !== downloadedAudio?.audioPath) {
-          await cleanupUploadedFile(compressedAudio).catch(() => {});
+
+        if (
+          compressedAudio &&
+          compressedAudio !== downloadedAudio?.audioPath
+        ) {
+          await cleanupUploadedFile(compressedAudio).catch(
+            () => {}
+          );
         }
+
         throw error;
       }
     }
 
-    // Handle YouTube URL
+    // Handle YouTube URL.
     if (youtubeUrl) {
       if (!isValidYoutubeUrl(youtubeUrl)) {
         return {
@@ -170,7 +242,11 @@ export async function createTranscriptionMutation(
         };
       }
 
-      let downloadedAudio: { audioPath: string; title: string } | null = null;
+      let downloadedAudio: {
+        audioPath: string;
+        title: string;
+      } | null = null;
+
       let compressedAudio: string | null = null;
 
       try {
@@ -179,50 +255,63 @@ export async function createTranscriptionMutation(
         let audioPath = downloadedAudio.audioPath;
         const originalFilename = `${downloadedAudio.title}.mp3`;
 
-        // Check file size and compress if needed (Groq limit is ~25MB)
+        // Check file size and compress if needed.
         const stats = await fs.stat(audioPath);
         const fileSizeMB = stats.size / (1024 * 1024);
 
-        console.log(`[YouTube] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`);
+        console.log(
+          `[YouTube] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`
+        );
 
         if (fileSizeMB > 24) {
           console.log('[YouTube] Audio too large, compressing...');
-          compressedAudio = await compressAudioIfNeeded(audioPath, 24);
+
+          compressedAudio = await compressAudioIfNeeded(
+            audioPath,
+            24
+          );
+
           audioPath = compressedAudio;
 
           const newStats = await fs.stat(audioPath);
           const newSizeMB = newStats.size / (1024 * 1024);
-          console.log(`[YouTube] Compressed audio size: ${newSizeMB.toFixed(2)}MB`);
+
+          console.log(
+            `[YouTube] Compressed audio size: ${newSizeMB.toFixed(2)}MB`
+          );
         }
 
-        // Transcribe
-        const languageMap: Record<string, string> = {
-          indonesian: 'id',
-          arabic: 'ar',
-          english: 'en',
-        };
-        const transcriptionResult = await transcribeAudio(audioPath, {
-          language: languageMap[language] || 'en',
-        });
+        // Automatically detect the original audio language.
+        const transcriptionResult = await transcribeAudio(
+          audioPath,
+          {
+            temperature: 0,
+          }
+        );
 
-        // Translate if Indonesian
-        let transcriptText = transcriptionResult.text;
-        if (language === 'indonesian') {
-          transcriptText = await translateTranscript(transcriptText, 'indonesian');
-        }
+        // Translate transcript into the selected output language.
+        const transcriptText = await translateTranscript(
+          transcriptionResult.text,
+          language
+        );
 
-        // Format transcript with paragraphs and sections
-        const [formattedTranscript, lectureNotes] = await Promise.all([
-          formatTranscript(transcriptText, language),
-          summarizeTranscript(transcriptText, originalFilename, {
-            language,
-            detailLevel: 'detailed',
-          }),
-        ]);
+        // Format transcript and generate lecture notes.
+        const [formattedTranscript, lectureNotes] =
+          await Promise.all([
+            formatTranscript(transcriptText, language),
+            summarizeTranscript(transcriptText, originalFilename, {
+              language,
+              detailLevel: 'detailed',
+            }),
+          ]);
 
-        // Cleanup
+        // Cleanup temporary downloaded audio.
         await cleanupUploadedFile(downloadedAudio.audioPath);
-        if (compressedAudio && compressedAudio !== downloadedAudio.audioPath) {
+
+        if (
+          compressedAudio &&
+          compressedAudio !== downloadedAudio.audioPath
+        ) {
           await cleanupUploadedFile(compressedAudio);
         }
 
@@ -239,18 +328,27 @@ export async function createTranscriptionMutation(
           },
         };
       } catch (error) {
-        // Cleanup on error
+        // Cleanup on error.
         if (downloadedAudio?.audioPath) {
-          await cleanupUploadedFile(downloadedAudio.audioPath).catch(() => {});
+          await cleanupUploadedFile(
+            downloadedAudio.audioPath
+          ).catch(() => {});
         }
-        if (compressedAudio && compressedAudio !== downloadedAudio?.audioPath) {
-          await cleanupUploadedFile(compressedAudio).catch(() => {});
+
+        if (
+          compressedAudio &&
+          compressedAudio !== downloadedAudio?.audioPath
+        ) {
+          await cleanupUploadedFile(compressedAudio).catch(
+            () => {}
+          );
         }
+
         throw error;
       }
     }
 
-    // Handle regular file upload
+    // Handle regular file upload.
     if (!file) {
       return {
         success: false,
@@ -258,7 +356,11 @@ export async function createTranscriptionMutation(
       };
     }
 
-    const validation = validateFile(file.type, file.size, file.name);
+    const validation = validateFile(
+      file.type,
+      file.size,
+      file.name
+    );
 
     if (!validation.valid) {
       return {
@@ -267,8 +369,11 @@ export async function createTranscriptionMutation(
       };
     }
 
-    // Check FFmpeg availability for video files
-    if (validation.fileType === 'video' && !checkFFmpegAvailable()) {
+    // Check FFmpeg availability for video files.
+    if (
+      validation.fileType === 'video' &&
+      !checkFFmpegAvailable()
+    ) {
       return {
         success: false,
         error: getFFmpegValidationDetails(),
@@ -281,65 +386,103 @@ export async function createTranscriptionMutation(
     let tempAudioPath: string | null = null;
     let compressedAudioPath: string | null = null;
 
-    if (validation.fileType === 'video') {
-      const extractionResult = await extractAudioFromVideo(uploadedFile.filepath);
-      tempAudioPath = extractionResult.audioPath;
-      audioPath = tempAudioPath;
+    try {
+      // Extract audio from video if required.
+      if (validation.fileType === 'video') {
+        const extractionResult = await extractAudioFromVideo(
+          uploadedFile.filepath
+        );
+
+        tempAudioPath = extractionResult.audioPath;
+        audioPath = tempAudioPath;
+      }
+
+      // Check audio file size.
+      const stats = await fs.stat(audioPath);
+      const sizeMB = stats.size / (1024 * 1024);
+
+      console.log(
+        `[Transcription] Audio file size: ${sizeMB.toFixed(2)}MB`
+      );
+
+      // Automatically detect original audio language.
+      const transcriptionResult = await transcribeAudio(
+        audioPath,
+        {
+          temperature: 0,
+        }
+      );
+
+      // Translate transcript into the selected output language.
+      const finalTranscript = await translateTranscript(
+        transcriptionResult.text,
+        language
+      );
+
+      // Format transcript and generate lecture notes.
+      console.log(
+        '[Transcription] Formatting transcript with paragraphs and sections...'
+      );
+
+      const [formattedTranscript, lectureNotes] =
+        await Promise.all([
+          formatTranscript(finalTranscript, language),
+          summarizeTranscript(
+            finalTranscript,
+            uploadedFile.originalFilename,
+            {
+              detailLevel: 'detailed',
+              language,
+            }
+          ),
+        ]);
+
+      const notesWithTranscript: LectureNotes = {
+        ...lectureNotes,
+        transcript: formattedTranscript,
+      };
+
+      // Cleanup temporary files.
+      if (compressedAudioPath) {
+        await cleanupTempFile(compressedAudioPath);
+      }
+
+      if (tempAudioPath) {
+        await cleanupTempFile(tempAudioPath);
+      }
+
+      await cleanupUploadedFile(uploadedFile.filepath);
+
+      revalidatePath('/');
+
+      return {
+        success: true,
+        data: notesWithTranscript,
+      };
+    } catch (error) {
+      // Cleanup files if processing fails.
+      if (compressedAudioPath) {
+        await cleanupTempFile(compressedAudioPath).catch(
+          () => {}
+        );
+      }
+
+      if (tempAudioPath) {
+        await cleanupTempFile(tempAudioPath).catch(() => {});
+      }
+
+      await cleanupUploadedFile(uploadedFile.filepath).catch(
+        () => {}
+      );
+
+      throw error;
     }
-
-    // Check if audio needs compression before transcription
-    const stats = await fs.stat(audioPath);
-    const sizeMB = stats.size / (1024 * 1024);
-
-    console.log(`[Transcription] Audio file size: ${sizeMB.toFixed(2)}MB`);
-
-    // Indonesian output is translated from English transcription (Whisper handles English best here)
-    const transcriptionResult = await transcribeAudio(audioPath, {
-      language: 'en',
-      temperature: 0,
-    });
-
-    // Translate transcript if Indonesian is selected
-    let finalTranscript = transcriptionResult.text;
-    if (language === 'indonesian') {
-      console.log('[Transcription] Translating transcript to Indonesian...');
-      finalTranscript = await translateTranscript(transcriptionResult.text, 'indonesian');
-    }
-
-    // Format transcript with paragraphs and sections
-    console.log('[Transcription] Formatting transcript with paragraphs and sections...');
-    // Format and summarize are independent: run concurrently for speed
-    const [formattedTranscript, lectureNotes] = await Promise.all([
-      formatTranscript(finalTranscript, language),
-      summarizeTranscript(finalTranscript, uploadedFile.originalFilename, {
-        detailLevel: 'detailed',
-        language: language,
-      }),
-    ]);
-
-    // Add full transcript to the response (already formatted)
-    const notesWithTranscript = {
-      ...lectureNotes,
-      transcript: formattedTranscript,
-    };
-
-    // Cleanup temporary files
-    if (compressedAudioPath) {
-      await cleanupTempFile(compressedAudioPath);
-    }
-    if (tempAudioPath) {
-      await cleanupTempFile(tempAudioPath);
-    }
-    await cleanupUploadedFile(uploadedFile.filepath);
-
-    revalidatePath('/');
-
-    return {
-      success: true,
-      data: notesWithTranscript,
-    };
   } catch (error) {
-    console.error('Transcription mutation failed:', error);
+    console.error(
+      'Transcription mutation failed:',
+      error
+    );
+
     return {
       success: false,
       error: formatApiError(error),
@@ -349,7 +492,9 @@ export async function createTranscriptionMutation(
 
 export async function validateFileMutation(
   formData: FormData
-): Promise<MutationResult<{ fileType: string; size: number }>> {
+): Promise<
+  MutationResult<{ fileType: string; size: number }>
+> {
   try {
     const file = formData.get('file') as File | null;
 
@@ -360,7 +505,11 @@ export async function validateFileMutation(
       };
     }
 
-    const validation = validateFile(file.type, file.size, file.name);
+    const validation = validateFile(
+      file.type,
+      file.size,
+      file.name
+    );
 
     if (!validation.valid) {
       return {
@@ -378,6 +527,7 @@ export async function validateFileMutation(
     };
   } catch (error) {
     console.error('File validation failed:', error);
+
     return {
       success: false,
       error: formatApiError(error),
@@ -398,18 +548,26 @@ export async function getProcessingStatusAction(
   };
 }
 
-export async function cleanupFilesAction(filePaths: string[]): Promise<MutationResult<void>> {
+export async function cleanupFilesAction(
+  filePaths: string[]
+): Promise<MutationResult<void>> {
   try {
-    await Promise.all(filePaths.map((path) => cleanupUploadedFile(path)));
+    await Promise.all(
+      filePaths.map((path) => cleanupUploadedFile(path))
+    );
 
     return {
       success: true,
     };
   } catch (error) {
     console.error('Cleanup failed:', error);
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Cleanup failed',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Cleanup failed',
     };
   }
 }
