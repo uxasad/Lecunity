@@ -194,9 +194,9 @@ export default function History({ onSelectItem }: HistoryProps) {
                     </span>
                   </span>
 
-                  <span>â€¢</span>
+                  <span>•</span>
                   <span>{getLanguageLabel(item.language)}</span>
-                  <span>â€¢</span>
+                  <span>•</span>
                   <span>{formatTimestamp(item.timestamp)}</span>
                 </div>
 

@@ -30,10 +30,10 @@ import {
 
 export { buildSummarizationPrompt } from '@/lib/ai-prompts';
 
-// Groq's free tier caps at 8000 tokens/minute (TPM),
-// shared across input + output.
+// Groq's free tier has a shared input/output token limit.
 const GROQ_MAX_INPUT_TOKENS = 4000;
 const GROQ_MAX_OUTPUT_TOKENS = 1500;
+const GROQ_MAX_TRANSLATION_OUTPUT_TOKENS = 3000;
 const GROQ_MAX_SUMMARY_OUTPUT_TOKENS = 2000;
 
 // Per-chunk input size for translate/format/condense.
@@ -279,7 +279,8 @@ export async function translateTranscript(
     for (const part of parts) {
       if (isGroq) {
         await paceTokens(
-          Math.ceil(part.length / 4) + GROQ_MAX_OUTPUT_TOKENS
+          Math.ceil(part.length / 4) +
+            GROQ_MAX_TRANSLATION_OUTPUT_TOKENS
         );
       }
 
@@ -296,14 +297,27 @@ export async function translateTranscript(
           },
         ],
         temperature: 0.3,
-        ...(isGroq && {
-          max_tokens: GROQ_MAX_OUTPUT_TOKENS,
-        }),
+        stream: false,
+        ...(isGroq
+          ? ({
+              max_completion_tokens:
+                GROQ_MAX_TRANSLATION_OUTPUT_TOKENS,
+              include_reasoning: false,
+              reasoning_effort: 'low',
+            } as any)
+          : {}),
       });
 
-      const translatedText = response.choices[0].message.content;
+      const translatedText = response.choices[0]?.message?.content;
 
       if (!translatedText?.trim()) {
+        console.error('[Translation] Empty response metadata:', {
+          model: response.model,
+          finishReason: response.choices[0]?.finish_reason,
+          usage: response.usage,
+          refusal: response.choices[0]?.message?.refusal,
+        });
+
         throw new Error(
           `Translation provider returned an empty ${languageLabel} translation.`
         );
