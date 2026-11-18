@@ -1,6 +1,8 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  ...(process.platform === 'win32' ? {} : { output: 'standalone' }),
+
   experimental: {
     serverActions: {
       bodySizeLimit: '100mb',
@@ -9,3 +11,4 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
