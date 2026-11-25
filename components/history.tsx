@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -201,9 +200,7 @@ export default function History({ onSelectItem }: HistoryProps) {
                 </div>
 
                 {item.notes.summary && (
-                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                    {item.notes.summary}
-                  </p>
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{item.notes.summary}</p>
                 )}
               </div>
 

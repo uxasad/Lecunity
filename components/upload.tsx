@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -205,12 +204,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           saveToHistory({
             title: result.data.title || 'YouTube Video',
             notes: result.data,
-            language:
-              language === 'urdu'
-                ? 'ur'
-                : language === 'roman-urdu'
-                  ? 'roman-urdu'
-                  : 'en',
+            language: language === 'urdu' ? 'ur' : language === 'roman-urdu' ? 'roman-urdu' : 'en',
             source: 'youtube',
             youtubeUrl,
           });
@@ -250,12 +244,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           saveToHistory({
             title: result.data.title || 'Media from URL',
             notes: result.data,
-            language:
-              language === 'urdu'
-                ? 'ur'
-                : language === 'roman-urdu'
-                  ? 'roman-urdu'
-                  : 'en',
+            language: language === 'urdu' ? 'ur' : language === 'roman-urdu' ? 'roman-urdu' : 'en',
             source: 'url',
             mediaUrl,
           });
@@ -337,12 +326,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           saveToHistory({
             title: result.data.title || selectedFile!.name,
             notes: result.data,
-            language:
-              language === 'urdu'
-                ? 'ur'
-                : language === 'roman-urdu'
-                  ? 'roman-urdu'
-                  : 'en',
+            language: language === 'urdu' ? 'ur' : language === 'roman-urdu' ? 'roman-urdu' : 'en',
             source: 'file',
             filename: selectedFile!.name,
           });
@@ -626,9 +610,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
           (inputMode === 'url' && mediaUrl)) &&
           !isUploading && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Output Language
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Output Language</label>
 
               <div className="grid grid-cols-3 gap-3">
                 <button
@@ -672,8 +654,8 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
               </div>
 
               <p className="text-xs text-gray-500 mt-1">
-  Choose the language in which you want your lecture notes.
-</p>
+                Choose the language in which you want your lecture notes.
+              </p>
             </div>
           )}
 

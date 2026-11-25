@@ -135,18 +135,18 @@ Lecunity-ai/
 
 ## 4. Important Modules
 
-| Module | Responsibility |
-|---|---|
-| `actions/transcription.ts` | Coordinates the transcription workflow through Server Actions |
-| `lib/ffmpeg.ts` | Extracts, converts, and prepares audio |
-| `lib/media-downloader.ts` | Downloads supported direct media URLs |
-| `lib/youtube.ts` | Handles YouTube media processing |
-| `lib/transcription-providers.ts` | Integrates speech-to-text providers |
-| `lib/ai.ts` | Handles AI generation and provider selection |
-| `lib/ai-prompts.ts` | Defines prompts for AI processing |
-| `lib/file-security.ts` | Performs file security checks |
-| `lib/rate-limiter.ts` | Applies request limits |
-| `utils/history.ts` | Manages browser-side history |
+| Module                           | Responsibility                                                |
+| -------------------------------- | ------------------------------------------------------------- |
+| `actions/transcription.ts`       | Coordinates the transcription workflow through Server Actions |
+| `lib/ffmpeg.ts`                  | Extracts, converts, and prepares audio                        |
+| `lib/media-downloader.ts`        | Downloads supported direct media URLs                         |
+| `lib/youtube.ts`                 | Handles YouTube media processing                              |
+| `lib/transcription-providers.ts` | Integrates speech-to-text providers                           |
+| `lib/ai.ts`                      | Handles AI generation and provider selection                  |
+| `lib/ai-prompts.ts`              | Defines prompts for AI processing                             |
+| `lib/file-security.ts`           | Performs file security checks                                 |
+| `lib/rate-limiter.ts`            | Applies request limits                                        |
+| `utils/history.ts`               | Manages browser-side history                                  |
 
 ## 5. Supported Output Languages
 

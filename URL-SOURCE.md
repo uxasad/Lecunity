@@ -96,14 +96,14 @@ The original speech language is automatically detected during transcription. The
 
 ## 4. Technical Implementation
 
-| Component | Responsibility |
-|---|---|
-| `components/upload.tsx` | URL input interface and form submission |
+| Component                  | Responsibility                                                            |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `components/upload.tsx`    | URL input interface and form submission                                   |
 | `actions/transcription.ts` | URL validation, download orchestration, transcription and note generation |
-| `lib/media-downloader.ts` | Direct HTTP/HTTPS media downloading |
-| `lib/youtube.ts` | YouTube URL validation and yt-dlp downloading |
-| `lib/ffmpeg.ts` | Audio extraction, compression and temporary-file handling |
-| `lib/ai.ts` | AI transcription and text generation |
+| `lib/media-downloader.ts`  | Direct HTTP/HTTPS media downloading                                       |
+| `lib/youtube.ts`           | YouTube URL validation and yt-dlp downloading                             |
+| `lib/ffmpeg.ts`            | Audio extraction, compression and temporary-file handling                 |
+| `lib/ai.ts`                | AI transcription and text generation                                      |
 
 ## 5. Requirements and Security Considerations
 

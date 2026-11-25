@@ -16,19 +16,19 @@ The application processes the provided media, generates a transcript, and uses A
 
 ## 2. Technology Stack
 
-| Technology | Purpose |
-|---|---|
-| Next.js 15 | Application framework |
-| React 19 | User interface |
-| TypeScript | Type safety |
-| Tailwind CSS | Styling |
-| pnpm | Package management |
-| FFmpeg | Audio extraction, conversion, compression, and chunking |
-| yt-dlp | YouTube media downloading |
-| OpenAI SDK | OpenAI-compatible AI integrations |
-| Groq API | Speech transcription and text generation |
-| Gemini API | Text generation |
-| Anthropic API | Text generation |
+| Technology    | Purpose                                                 |
+| ------------- | ------------------------------------------------------- |
+| Next.js 15    | Application framework                                   |
+| React 19      | User interface                                          |
+| TypeScript    | Type safety                                             |
+| Tailwind CSS  | Styling                                                 |
+| pnpm          | Package management                                      |
+| FFmpeg        | Audio extraction, conversion, compression, and chunking |
+| yt-dlp        | YouTube media downloading                               |
+| OpenAI SDK    | OpenAI-compatible AI integrations                       |
+| Groq API      | Speech transcription and text generation                |
+| Gemini API    | Text generation                                         |
+| Anthropic API | Text generation                                         |
 
 ## 3. High-Level Architecture
 
@@ -151,11 +151,11 @@ lecunity/
 
 ## 5. Application Routes
 
-| Route | Purpose |
-|---|---|
-| `/` | Main application interface |
-| `/api/limits` | API endpoint for rate-limit information |
-| `/test-error-boundary` | Error-boundary testing page |
+| Route                  | Purpose                                 |
+| ---------------------- | --------------------------------------- |
+| `/`                    | Main application interface              |
+| `/api/limits`          | API endpoint for rate-limit information |
+| `/test-error-boundary` | Error-boundary testing page             |
 
 Media transcription is handled through a Next.js Server Action rather than a dedicated `/api/transcribe` route.
 
@@ -246,20 +246,20 @@ The application separates speech transcription from text generation.
 
 ### Speech Transcription Providers
 
-| Provider | Function |
-|---|---|
-| OpenAI | Audio transcription |
-| Groq | Audio transcription |
+| Provider | Function            |
+| -------- | ------------------- |
+| OpenAI   | Audio transcription |
+| Groq     | Audio transcription |
 | Deepgram | Audio transcription |
 
 ### Text Generation Providers
 
-| Provider | Function |
-|---|---|
-| OpenAI | Translation, formatting, and summarization |
-| Groq | Translation, formatting, and summarization |
-| Gemini | Translation, formatting, and summarization |
-| Anthropic | Summarization |
+| Provider  | Function                                   |
+| --------- | ------------------------------------------ |
+| OpenAI    | Translation, formatting, and summarization |
+| Groq      | Translation, formatting, and summarization |
+| Gemini    | Translation, formatting, and summarization |
+| Anthropic | Summarization                              |
 
 Provider selection is controlled through environment variables.
 
@@ -319,16 +319,16 @@ It manages the main application state, including:
 
 The interface is divided into reusable React components.
 
-| Component | Responsibility |
-|---|---|
-| `upload.tsx` | Media input and submission |
-| `notes-display.tsx` | Generated notes presentation |
-| `history.tsx` | Previous results |
-| `media-player.tsx` | Floating media player |
-| `processing-steps.tsx` | Processing stages |
-| `processing-tips.tsx` | Processing guidance |
-| `progress.tsx` | Progress presentation |
-| `error-boundary.tsx` | React error handling |
+| Component              | Responsibility               |
+| ---------------------- | ---------------------------- |
+| `upload.tsx`           | Media input and submission   |
+| `notes-display.tsx`    | Generated notes presentation |
+| `history.tsx`          | Previous results             |
+| `media-player.tsx`     | Floating media player        |
+| `processing-steps.tsx` | Processing stages            |
+| `processing-tips.tsx`  | Processing guidance          |
+| `progress.tsx`         | Progress presentation        |
+| `error-boundary.tsx`   | React error handling         |
 
 ## 11. Browser History
 
@@ -357,10 +357,10 @@ Rate limiting is implemented in `lib/rate-limiter.ts`.
 
 Current configured limits:
 
-| Limit | Maximum |
-|---|---:|
-| Hourly transcription requests | 5 |
-| Rolling 24-hour transcription requests | 20 |
+| Limit                                  | Maximum |
+| -------------------------------------- | ------: |
+| Hourly transcription requests          |       5 |
+| Rolling 24-hour transcription requests |      20 |
 
 Requests are identified using the client IP address obtained from request headers.
 
@@ -391,18 +391,18 @@ Environment variables configure AI providers and media-processing behavior.
 
 Important configuration variables include:
 
-| Variable | Purpose |
-|---|---|
-| `AI_PROVIDER` | Speech transcription provider |
-| `AI_SUMMARIZATION_PROVIDER` | Text generation provider |
-| `GROQ_API_KEY` | Groq authentication |
-| `OPENAI_API_KEY` | OpenAI authentication |
-| `DEEPGRAM_API_KEY` | Deepgram authentication |
-| `GEMINI_API_KEY` | Gemini authentication |
-| `ANTHROPIC_API_KEY` | Anthropic authentication |
-| `MAX_FILE_SIZE_MB` | General uploaded file-size limit |
-| `FFMPEG_PATH` | Optional FFmpeg executable path |
-| `FFPROBE_PATH` | Optional FFprobe executable path |
+| Variable                    | Purpose                          |
+| --------------------------- | -------------------------------- |
+| `AI_PROVIDER`               | Speech transcription provider    |
+| `AI_SUMMARIZATION_PROVIDER` | Text generation provider         |
+| `GROQ_API_KEY`              | Groq authentication              |
+| `OPENAI_API_KEY`            | OpenAI authentication            |
+| `DEEPGRAM_API_KEY`          | Deepgram authentication          |
+| `GEMINI_API_KEY`            | Gemini authentication            |
+| `ANTHROPIC_API_KEY`         | Anthropic authentication         |
+| `MAX_FILE_SIZE_MB`          | General uploaded file-size limit |
+| `FFMPEG_PATH`               | Optional FFmpeg executable path  |
+| `FFPROBE_PATH`              | Optional FFprobe executable path |
 
 Use `.env.example` as the configuration reference. Actual API keys must remain in private environment configuration and must never be committed to the repository.
 

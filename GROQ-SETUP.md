@@ -35,9 +35,9 @@ Do not share your `.env.local` file or upload it to GitHub.
 
 Lecunity uses two separate provider settings:
 
-| Variable | Purpose |
-|---|---|
-| `AI_PROVIDER` | Audio transcription |
+| Variable                    | Purpose                                        |
+| --------------------------- | ---------------------------------------------- |
+| `AI_PROVIDER`               | Audio transcription                            |
 | `AI_SUMMARIZATION_PROVIDER` | Summarization, translation and text formatting |
 
 This separation allows Groq to handle transcription while Gemini handles text generation.

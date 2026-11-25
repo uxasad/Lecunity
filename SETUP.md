@@ -226,19 +226,19 @@ Direct media URLs must point to downloadable audio or video files. Not every web
 
 ## 9. Useful Development Commands
 
-| Command | Purpose |
-|---|---|
-| `pnpm dev` | Start development server |
-| `pnpm build` | Build the application |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run ESLint |
-| `pnpm type-check` | Check TypeScript types |
-| `pnpm test` | Run tests |
-| `pnpm test:run` | Run tests once |
-| `pnpm test:coverage` | Run tests with coverage |
-| `pnpm test:e2e` | Run Playwright tests |
-| `pnpm format` | Format source files |
-| `pnpm format:check` | Check formatting |
+| Command              | Purpose                  |
+| -------------------- | ------------------------ |
+| `pnpm dev`           | Start development server |
+| `pnpm build`         | Build the application    |
+| `pnpm start`         | Start production server  |
+| `pnpm lint`          | Run ESLint               |
+| `pnpm type-check`    | Check TypeScript types   |
+| `pnpm test`          | Run tests                |
+| `pnpm test:run`      | Run tests once           |
+| `pnpm test:coverage` | Run tests with coverage  |
+| `pnpm test:e2e`      | Run Playwright tests     |
+| `pnpm format`        | Format source files      |
+| `pnpm format:check`  | Check formatting         |
 
 ## 10. Troubleshooting
 

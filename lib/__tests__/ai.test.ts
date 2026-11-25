@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getAIConfig,
@@ -7,11 +6,7 @@ import {
   formatTranscript,
   summarizeTranscript,
 } from '@/lib/ai';
-import {
-  buildSummarizationPrompt,
-  FORMAT_PROMPTS,
-  TRANSLATE_PROMPTS,
-} from '@/lib/ai-prompts';
+import { buildSummarizationPrompt, FORMAT_PROMPTS, TRANSLATE_PROMPTS } from '@/lib/ai-prompts';
 
 const { mockCreate, mockTranscriptionsCreate } = vi.hoisted(() => ({
   mockCreate: vi.fn(),
@@ -78,21 +73,18 @@ describe('AI prompts (ai-prompts.ts)', () => {
     });
 
     it('English prompt preserves original content without inventing information', () => {
-  expect(FORMAT_PROMPTS.english).toContain(
-    'Preserve the original meaning and context.'
-  );
+      expect(FORMAT_PROMPTS.english).toContain('Preserve the original meaning and context.');
 
-  expect(FORMAT_PROMPTS.english).toContain(
-    'Never invent information, facts, or references.'
-  );
-});
+      expect(FORMAT_PROMPTS.english).toContain('Never invent information, facts, or references.');
+    });
 
-it('Urdu and Roman Urdu prompts contain general formatting instructions', () => {
-  expect(FORMAT_PROMPTS.urdu).toContain('اہم معلومات');
-  expect(FORMAT_PROMPTS['roman-urdu']).toContain(
-    'Never invent information, facts, or references.'
-  );
-});  });
+    it('Urdu and Roman Urdu prompts contain general formatting instructions', () => {
+      expect(FORMAT_PROMPTS.urdu).toContain('اہم معلومات');
+      expect(FORMAT_PROMPTS['roman-urdu']).toContain(
+        'Never invent information, facts, or references.'
+      );
+    });
+  });
 
   describe('buildSummarizationPrompt', () => {
     it('uses English as the output language when English is selected', () => {
@@ -216,37 +208,30 @@ describe('translateTranscript', () => {
     ['English', 'english'],
     ['Urdu', 'urdu'],
     ['Roman Urdu', 'roman-urdu'],
-  ] as const)(
-    'calls the LLM API for %s translation',
-    async (_label, language) => {
-      const translated = 'Translated lecture transcript.';
+  ] as const)('calls the LLM API for %s translation', async (_label, language) => {
+    const translated = 'Translated lecture transcript.';
 
-      mockCreate.mockResolvedValueOnce({
-        choices: [{ message: { content: translated } }],
-      });
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: translated } }],
+    });
 
-      const input = 'This is an English transcript.';
-      const result = await translateTranscript(input, language);
+    const input = 'This is an English transcript.';
+    const result = await translateTranscript(input, language);
 
-      expect(result).toBe(translated);
-      expect(mockCreate).toHaveBeenCalledOnce();
+    expect(result).toBe(translated);
+    expect(mockCreate).toHaveBeenCalledOnce();
 
-      const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0][0];
 
-      expect(callArgs.messages[0].role).toBe('system');
-      expect(callArgs.messages[0].content).toBe(
-        TRANSLATE_PROMPTS[language]
-      );
-      expect(callArgs.messages[1].content).toBe(input);
-    }
-  );
+    expect(callArgs.messages[0].role).toBe('system');
+    expect(callArgs.messages[0].content).toBe(TRANSLATE_PROMPTS[language]);
+    expect(callArgs.messages[1].content).toBe(input);
+  });
 
   it('throws when the translation API call fails', async () => {
     mockCreate.mockRejectedValueOnce(new Error('Network error'));
 
-    await expect(
-      translateTranscript('Original transcript.', 'urdu')
-    ).rejects.toThrow();
+    await expect(translateTranscript('Original transcript.', 'urdu')).rejects.toThrow();
   });
 });
 
@@ -263,8 +248,7 @@ describe('formatTranscript', () => {
 
       const longText = Array.from(
         { length: 10 },
-        () =>
-          'This is a sentence. It provides content for the test. Here is another sentence.'
+        () => 'This is a sentence. It provides content for the test. Here is another sentence.'
       ).join(' ');
 
       const result = await formatTranscript(longText);
@@ -311,18 +295,14 @@ describe('formatTranscript', () => {
 
       const callArgs = mockCreate.mock.calls[0][0];
 
-      expect(callArgs.messages[0].content).toBe(
-        FORMAT_PROMPTS[language]
-      );
+      expect(callArgs.messages[0].content).toBe(FORMAT_PROMPTS[language]);
     }
   });
 
   it('falls back to basic paragraphs on API error', async () => {
     mockCreate.mockRejectedValueOnce(new Error('API error'));
 
-    const result = await formatTranscript(
-      'Sentence one. Sentence two.'
-    );
+    const result = await formatTranscript('Sentence one. Sentence two.');
 
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
@@ -340,9 +320,9 @@ describe('summarizeTranscript', () => {
     try {
       process.env.GROQ_API_KEY = '';
 
-      await expect(
-        summarizeTranscript('transcript', 'file.mp3')
-      ).rejects.toThrow('API key not configured');
+      await expect(summarizeTranscript('transcript', 'file.mp3')).rejects.toThrow(
+        'API key not configured'
+      );
     } finally {
       if (originalKey === undefined) {
         delete process.env.GROQ_API_KEY;
@@ -354,15 +334,10 @@ describe('summarizeTranscript', () => {
 
   it('parses and returns a valid LectureNotes object', async () => {
     mockCreate.mockResolvedValueOnce({
-      choices: [
-        { message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } },
-      ],
+      choices: [{ message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } }],
     });
 
-    const result = await summarizeTranscript(
-      'Lecture content goes here.',
-      'lecture.mp3'
-    );
+    const result = await summarizeTranscript('Lecture content goes here.', 'lecture.mp3');
 
     expect(result.title).toBe('Test Lecture');
     expect(result.summary).toBe('This is a test summary.');
@@ -390,10 +365,7 @@ describe('summarizeTranscript', () => {
         : { choices: [{ message: { content: 'digest' } }] }
     );
 
-    const result = await summarizeTranscript(
-      longTranscript,
-      'long-lecture.mp3'
-    );
+    const result = await summarizeTranscript(longTranscript, 'long-lecture.mp3');
 
     expect(mockCreate.mock.calls.length).toBeGreaterThan(2);
     expect(result.summary).not.toContain('cropped');
@@ -403,15 +375,10 @@ describe('summarizeTranscript', () => {
 
   it('includes word count and model info in metadata', async () => {
     mockCreate.mockResolvedValueOnce({
-      choices: [
-        { message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } },
-      ],
+      choices: [{ message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } }],
     });
 
-    const result = await summarizeTranscript(
-      'one two three',
-      'test.mp3'
-    );
+    const result = await summarizeTranscript('one two three', 'test.mp3');
 
     expect(result.metadata.wordCount).toBe(3);
     expect(result.metadata.transcriptionModel).toBeTruthy();
@@ -420,9 +387,7 @@ describe('summarizeTranscript', () => {
 
   it('respects custom summarization options', async () => {
     mockCreate.mockResolvedValueOnce({
-      choices: [
-        { message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } },
-      ],
+      choices: [{ message: { content: JSON.stringify(MOCK_SUMMARY_RESPONSE) } }],
     });
 
     await summarizeTranscript('transcript', 'file.mp3', {
@@ -453,10 +418,7 @@ describe('summarizeTranscript', () => {
       ],
     });
 
-    const result = await summarizeTranscript(
-      'transcript',
-      'file.mp3'
-    );
+    const result = await summarizeTranscript('transcript', 'file.mp3');
 
     expect(result.paragraphs).toEqual([]);
     expect(result.bulletPoints).toEqual([]);

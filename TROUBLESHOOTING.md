@@ -37,12 +37,12 @@ Lecunity uses separate configuration settings for transcription and text generat
 
 Default configuration:
 
-| Purpose | Environment variable | Default |
-|---|---|---|
-| Transcription provider | `AI_PROVIDER` | `groq` |
-| Text-generation provider | `AI_SUMMARIZATION_PROVIDER` | `gemini` |
-| Groq transcription model | `GROQ_TRANSCRIPTION_MODEL` | `whisper-large-v3` |
-| Gemini generation model | `GEMINI_SUMMARIZATION_MODEL` | `gemini-3.6-flash` |
+| Purpose                  | Environment variable         | Default            |
+| ------------------------ | ---------------------------- | ------------------ |
+| Transcription provider   | `AI_PROVIDER`                | `groq`             |
+| Text-generation provider | `AI_SUMMARIZATION_PROVIDER`  | `gemini`           |
+| Groq transcription model | `GROQ_TRANSCRIPTION_MODEL`   | `whisper-large-v3` |
+| Gemini generation model  | `GEMINI_SUMMARIZATION_MODEL` | `gemini-3.6-flash` |
 
 The corresponding API keys must be configured:
 
@@ -265,18 +265,18 @@ The project uses Next.js standalone output. Deployment compatibility still depen
 
 ## 10. Useful Commands
 
-| Task | Command |
-|---|---|
-| Install dependencies | `pnpm install` |
-| Start development server | `pnpm dev` |
-| Run type checking | `pnpm type-check` |
-| Run linting | `pnpm lint` |
-| Run unit and integration tests | `pnpm test:run` |
-| Run end-to-end tests | `pnpm test:e2e` |
-| Create production build | `pnpm build` |
-| Start production server | `pnpm start` |
-| Check FFmpeg setup | `pnpm check:ffmpeg` |
-| Find FFmpeg binaries | `pnpm find:ffmpeg` |
+| Task                           | Command             |
+| ------------------------------ | ------------------- |
+| Install dependencies           | `pnpm install`      |
+| Start development server       | `pnpm dev`          |
+| Run type checking              | `pnpm type-check`   |
+| Run linting                    | `pnpm lint`         |
+| Run unit and integration tests | `pnpm test:run`     |
+| Run end-to-end tests           | `pnpm test:e2e`     |
+| Create production build        | `pnpm build`        |
+| Start production server        | `pnpm start`        |
+| Check FFmpeg setup             | `pnpm check:ffmpeg` |
+| Find FFmpeg binaries           | `pnpm find:ffmpeg`  |
 
 ## 11. Reporting an Issue
 
@@ -294,6 +294,7 @@ Remove API keys, personal information, and private media URLs before sharing log
 ---
 
 For additional technical details, see [README.md](./README.md), [SETUP.md](./SETUP.md), [ARCHITECTURE.md](./ARCHITECTURE.md), and [GROQ-SETUP.md](./GROQ-SETUP.md).
+
 # Troubleshooting
 
 ## 1. Transcription Errors

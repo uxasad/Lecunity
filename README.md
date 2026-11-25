@@ -20,18 +20,18 @@ The goal is to make educational content easier to understand, review, and study.
 
 ## Technology Stack
 
-| Technology | Purpose |
-|---|---|
-| Next.js 15 | Application framework |
-| React 19 | User interface |
-| TypeScript | Type-safe development |
-| Tailwind CSS | Styling |
-| Groq API | AI transcription and summarization |
-| Whisper Large V3 | Speech-to-text transcription |
-| GPT-OSS-20B | AI summarization |
-| FFmpeg | Audio and video processing |
-| yt-dlp | YouTube media retrieval |
-| pnpm | Package management |
+| Technology       | Purpose                            |
+| ---------------- | ---------------------------------- |
+| Next.js 15       | Application framework              |
+| React 19         | User interface                     |
+| TypeScript       | Type-safe development              |
+| Tailwind CSS     | Styling                            |
+| Groq API         | AI transcription and summarization |
+| Whisper Large V3 | Speech-to-text transcription       |
+| GPT-OSS-20B      | AI summarization                   |
+| FFmpeg           | Audio and video processing         |
+| yt-dlp           | YouTube media retrieval            |
+| pnpm             | Package management                 |
 
 ## How It Works
 
@@ -100,16 +100,16 @@ http://localhost:3000
 
 ## Available Commands
 
-| Command | Description |
-|---|---|
-| `pnpm dev` | Start development server |
-| `pnpm build` | Build the application |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run lint checks |
-| `pnpm type-check` | Check TypeScript types |
-| `pnpm test` | Run tests |
-| `pnpm test:run` | Run tests once |
-| `pnpm test:coverage` | Run tests with coverage |
+| Command              | Description              |
+| -------------------- | ------------------------ |
+| `pnpm dev`           | Start development server |
+| `pnpm build`         | Build the application    |
+| `pnpm start`         | Start production server  |
+| `pnpm lint`          | Run lint checks          |
+| `pnpm type-check`    | Check TypeScript types   |
+| `pnpm test`          | Run tests                |
+| `pnpm test:run`      | Run tests once           |
+| `pnpm test:coverage` | Run tests with coverage  |
 
 ## Project Structure
 

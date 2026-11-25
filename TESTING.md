@@ -6,13 +6,13 @@ This document explains the testing tools, configuration, available test suites, 
 
 Lecunity uses two testing frameworks:
 
-| Tool | Purpose |
-|---|---|
-| Vitest | Unit and integration testing |
-| React Testing Library | Testing React components |
-| Jest DOM | DOM assertions |
-| Playwright | End-to-end browser testing |
-| V8 Coverage | Measuring code coverage |
+| Tool                  | Purpose                      |
+| --------------------- | ---------------------------- |
+| Vitest                | Unit and integration testing |
+| React Testing Library | Testing React components     |
+| Jest DOM              | DOM assertions               |
+| Playwright            | End-to-end browser testing   |
+| V8 Coverage           | Measuring code coverage      |
 
 ## 2. Vitest Configuration
 
@@ -50,15 +50,15 @@ These settings provide a consistent environment for unit and integration tests.
 
 Tests are located in `tests/integration/`.
 
-| Test file | Main testing area |
-|---|---|
-| `api-limits.test.ts` | API limits |
-| `file-security.test.ts` | File signatures and security validation |
-| `file-validation.test.ts` | File type and size validation |
-| `history.test.ts` | Browser history functionality |
-| `media-player.test.tsx` | Media player component |
-| `quiz.test.tsx` | Quiz-related logic |
-| `rate-limiter.test.ts` | Rate-limiting behavior |
+| Test file                 | Main testing area                       |
+| ------------------------- | --------------------------------------- |
+| `api-limits.test.ts`      | API limits                              |
+| `file-security.test.ts`   | File signatures and security validation |
+| `file-validation.test.ts` | File type and size validation           |
+| `history.test.ts`         | Browser history functionality           |
+| `media-player.test.tsx`   | Media player component                  |
+| `quiz.test.tsx`           | Quiz-related logic                      |
+| `rate-limiter.test.ts`    | Rate-limiting behavior                  |
 
 The presence of a quiz test file does not necessarily mean a complete quiz feature is available in the application.
 
@@ -68,12 +68,12 @@ The presence of a quiz test file does not necessarily mean a complete quiz featu
 
 Playwright tests are located in `tests/e2e/`.
 
-| Test file | Main testing area |
-|---|---|
-| `homepage.spec.ts` | Homepage behavior |
-| `file-upload.spec.ts` | File upload interactions |
-| `history.spec.ts` | History interactions |
-| `rate-limiting.spec.ts` | Rate-limiting behavior |
+| Test file               | Main testing area        |
+| ----------------------- | ------------------------ |
+| `homepage.spec.ts`      | Homepage behavior        |
+| `file-upload.spec.ts`   | File upload interactions |
+| `history.spec.ts`       | History interactions     |
+| `rate-limiting.spec.ts` | Rate-limiting behavior   |
 
 ### Browser Projects
 

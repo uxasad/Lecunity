@@ -25,12 +25,12 @@ Both limits are checked by the transcription action.
 
 ## File Validation Limits
 
-| Validation | Configured limit | Implementation status |
-|---|---:|---|
-| General uploaded file | 50 MB code fallback; 100 MB in the example environment configuration | Enforced |
-| Audio file | 25 MB | Enforced |
-| Video-specific validation | 500 MB | Present, but blocked by the configured general upload limit |
-| YouTube downloaded media | 100 MB | Configuration only; enforcement not verified |
+| Validation                |                                                     Configured limit | Implementation status                                       |
+| ------------------------- | -------------------------------------------------------------------: | ----------------------------------------------------------- |
+| General uploaded file     | 50 MB code fallback; 100 MB in the example environment configuration | Enforced                                                    |
+| Audio file                |                                                                25 MB | Enforced                                                    |
+| Video-specific validation |                                                               500 MB | Present, but blocked by the configured general upload limit |
+| YouTube downloaded media  |                                                               100 MB | Configuration only; enforcement not verified                |
 
 The general upload limit can be changed using the `MAX_FILE_SIZE_MB` environment variable.
 

@@ -1,4 +1,3 @@
-
 import pRetry, { AbortError } from 'p-retry';
 import type {
   TranscriptionResult,
@@ -7,11 +6,7 @@ import type {
   TranscriptionOptions,
   SummarizationOptions,
 } from '@/types';
-import {
-  TRANSLATE_PROMPTS,
-  FORMAT_PROMPTS,
-  buildSummarizationPrompt,
-} from '@/lib/ai-prompts';
+import { TRANSLATE_PROMPTS, FORMAT_PROMPTS, buildSummarizationPrompt } from '@/lib/ai-prompts';
 import {
   retryOptions,
   createOpenAIClient,
@@ -45,30 +40,22 @@ const GROQ_CHUNK_TOKENS = 2500;
  */
 export function getAIConfig(): AIConfig {
   const AI_PROVIDER =
-    (process.env.AI_PROVIDER as
-      | 'openai'
-      | 'groq'
-      | 'deepgram'
-      | 'anthropic') || 'openai';
+    (process.env.AI_PROVIDER as 'openai' | 'groq' | 'deepgram' | 'anthropic') || 'openai';
 
   switch (AI_PROVIDER) {
     case 'openai':
       return {
         provider: 'openai',
-        transcriptionModel:
-          process.env.OPENAI_TRANSCRIPTION_MODEL || 'whisper-1',
-        summarizationModel:
-          process.env.OPENAI_SUMMARIZATION_MODEL || 'gpt-4-turbo-preview',
+        transcriptionModel: process.env.OPENAI_TRANSCRIPTION_MODEL || 'whisper-1',
+        summarizationModel: process.env.OPENAI_SUMMARIZATION_MODEL || 'gpt-4-turbo-preview',
         apiKey: process.env.OPENAI_API_KEY || '',
       };
 
     case 'groq':
       return {
         provider: 'groq',
-        transcriptionModel:
-          process.env.GROQ_TRANSCRIPTION_MODEL || 'whisper-large-v3',
-        summarizationModel:
-          process.env.GROQ_SUMMARIZATION_MODEL || 'openai/gpt-oss-20b',
+        transcriptionModel: process.env.GROQ_TRANSCRIPTION_MODEL || 'whisper-large-v3',
+        summarizationModel: process.env.GROQ_SUMMARIZATION_MODEL || 'openai/gpt-oss-20b',
         apiKey: process.env.GROQ_API_KEY || '',
       };
 
@@ -76,18 +63,15 @@ export function getAIConfig(): AIConfig {
       return {
         provider: 'deepgram',
         transcriptionModel: 'nova-2',
-        summarizationModel:
-          process.env.OPENAI_SUMMARIZATION_MODEL || 'gpt-4-turbo-preview',
+        summarizationModel: process.env.OPENAI_SUMMARIZATION_MODEL || 'gpt-4-turbo-preview',
         apiKey: process.env.DEEPGRAM_API_KEY || '',
       };
 
     case 'anthropic':
       return {
         provider: 'anthropic',
-        transcriptionModel:
-          process.env.OPENAI_TRANSCRIPTION_MODEL || 'whisper-1',
-        summarizationModel:
-          process.env.ANTHROPIC_MODEL || 'claude-3-opus-20240229',
+        transcriptionModel: process.env.OPENAI_TRANSCRIPTION_MODEL || 'whisper-1',
+        summarizationModel: process.env.ANTHROPIC_MODEL || 'claude-3-opus-20240229',
         apiKey: process.env.ANTHROPIC_API_KEY || '',
       };
 
@@ -101,24 +85,15 @@ export function getAIConfig(): AIConfig {
  */
 export function getSummarizationConfig(): AIConfig {
   const SUMMARIZATION_PROVIDER =
-    (process.env.AI_SUMMARIZATION_PROVIDER as
-      | 'openai'
-      | 'groq'
-      | 'anthropic'
-      | 'gemini') ||
-    (process.env.AI_PROVIDER as
-      | 'openai'
-      | 'groq'
-      | 'deepgram'
-      | 'anthropic') ||
+    (process.env.AI_SUMMARIZATION_PROVIDER as 'openai' | 'groq' | 'anthropic' | 'gemini') ||
+    (process.env.AI_PROVIDER as 'openai' | 'groq' | 'deepgram' | 'anthropic') ||
     'openai';
 
   if (SUMMARIZATION_PROVIDER === 'gemini') {
     return {
       provider: 'gemini',
       transcriptionModel: '',
-      summarizationModel:
-        process.env.GEMINI_SUMMARIZATION_MODEL || 'gemini-3.6-flash',
+      summarizationModel: process.env.GEMINI_SUMMARIZATION_MODEL || 'gemini-3.6-flash',
       apiKey: process.env.GEMINI_API_KEY || '',
     };
   }
@@ -136,9 +111,7 @@ export async function transcribeAudio(
   const config = getAIConfig();
 
   if (!config.apiKey) {
-    throw new Error(
-      `API key not configured for provider: ${config.provider}`
-    );
+    throw new Error(`API key not configured for provider: ${config.provider}`);
   }
 
   switch (config.provider) {
@@ -153,9 +126,7 @@ export async function transcribeAudio(
       return transcribeWithDeepgram(audioPath, config, options);
 
     default:
-      throw new Error(
-        `Transcription not supported for provider: ${config.provider}`
-      );
+      throw new Error(`Transcription not supported for provider: ${config.provider}`);
   }
 }
 
@@ -169,9 +140,7 @@ export async function transcribeAudioChunked(
 ): Promise<TranscriptionResult> {
   const { chunks, dir } = await prepareAudioChunks(audioPath, 600);
 
-  console.log(
-    `[Transcription] Split into ${chunks.length} chunk(s)`
-  );
+  console.log(`[Transcription] Split into ${chunks.length} chunk(s)`);
 
   try {
     const texts: string[] = [];
@@ -181,19 +150,13 @@ export async function transcribeAudioChunked(
     let language: string | undefined;
 
     for (let i = 0; i < chunks.length; i++) {
-      console.log(
-        `[Transcription] Chunk ${i + 1}/${chunks.length}`
-      );
+      console.log(`[Transcription] Chunk ${i + 1}/${chunks.length}`);
 
-      const tail = texts.length
-        ? texts[texts.length - 1].slice(-200)
-        : '';
+      const tail = texts.length ? texts[texts.length - 1].slice(-200) : '';
 
       const result = await transcribeAudio(chunks[i].path, {
         ...options,
-        prompt:
-          [options.prompt, tail].filter(Boolean).join(' ').slice(-800) ||
-          undefined,
+        prompt: [options.prompt, tail].filter(Boolean).join(' ').slice(-800) || undefined,
       });
 
       texts.push(result.text.trim());
@@ -217,10 +180,12 @@ export async function transcribeAudioChunked(
       ...(segments.length && { segments }),
     } as TranscriptionResult;
   } finally {
-    await fsp.rm(dir, {
-      recursive: true,
-      force: true,
-    }).catch(() => {});
+    await fsp
+      .rm(dir, {
+        recursive: true,
+        force: true,
+      })
+      .catch(() => {});
   }
 }
 
@@ -239,9 +204,7 @@ export async function translateTranscript(
   const config = getSummarizationConfig();
 
   if (!config.apiKey) {
-    throw new Error(
-      `API key not configured for provider: ${config.provider}`
-    );
+    throw new Error(`API key not configured for provider: ${config.provider}`);
   }
 
   const languageLabels = {
@@ -252,36 +215,23 @@ export async function translateTranscript(
 
   const languageLabel = languageLabels[targetLanguage];
 
-  console.log(
-    `[Translation] Translating transcript to ${languageLabel}...`
-  );
+  console.log(`[Translation] Translating transcript to ${languageLabel}...`);
 
-  if (
-    config.provider !== 'openai' &&
-    config.provider !== 'groq' &&
-    config.provider !== 'gemini'
-  ) {
-    throw new Error(
-      `Translation is not supported for provider: ${config.provider}`
-    );
+  if (config.provider !== 'openai' && config.provider !== 'groq' && config.provider !== 'gemini') {
+    throw new Error(`Translation is not supported for provider: ${config.provider}`);
   }
 
   try {
     const openai = createOpenAIClient(config);
     const isGroq = config.provider === 'groq';
 
-    const parts = isGroq
-      ? chunkText(transcript, GROQ_CHUNK_TOKENS)
-      : [transcript];
+    const parts = isGroq ? chunkText(transcript, GROQ_CHUNK_TOKENS) : [transcript];
 
     const out: string[] = [];
 
     for (const part of parts) {
       if (isGroq) {
-        await paceTokens(
-          Math.ceil(part.length / 4) +
-            GROQ_MAX_TRANSLATION_OUTPUT_TOKENS
-        );
+        await paceTokens(Math.ceil(part.length / 4) + GROQ_MAX_TRANSLATION_OUTPUT_TOKENS);
       }
 
       const response = await openai.chat.completions.create({
@@ -300,8 +250,7 @@ export async function translateTranscript(
         stream: false,
         ...(isGroq
           ? ({
-              max_completion_tokens:
-                GROQ_MAX_TRANSLATION_OUTPUT_TOKENS,
+              max_completion_tokens: GROQ_MAX_TRANSLATION_OUTPUT_TOKENS,
               include_reasoning: false,
               reasoning_effort: 'low',
             } as any)
@@ -318,17 +267,13 @@ export async function translateTranscript(
           refusal: response.choices[0]?.message?.refusal,
         });
 
-        throw new Error(
-          `Translation provider returned an empty ${languageLabel} translation.`
-        );
+        throw new Error(`Translation provider returned an empty ${languageLabel} translation.`);
       }
 
       out.push(translatedText.trim());
     }
 
-    console.log(
-      `[Translation] Translation complete (${parts.length} part(s))`
-    );
+    console.log(`[Translation] Translation complete (${parts.length} part(s))`);
 
     return out.join('\n\n');
   } catch (error) {
@@ -336,9 +281,7 @@ export async function translateTranscript(
 
     throw new Error(
       `Failed to translate transcript into ${languageLabel}. ${
-        error instanceof Error
-          ? error.message
-          : 'Unknown translation error.'
+        error instanceof Error ? error.message : 'Unknown translation error.'
       }`
     );
   }
@@ -373,17 +316,13 @@ export async function formatTranscript(
       const openai = createOpenAIClient(config);
       const isGroq = config.provider === 'groq';
 
-      const parts = isGroq
-        ? chunkText(transcript, GROQ_CHUNK_TOKENS)
-        : [transcript];
+      const parts = isGroq ? chunkText(transcript, GROQ_CHUNK_TOKENS) : [transcript];
 
       const out: string[] = [];
 
       for (const part of parts) {
         if (isGroq) {
-          await paceTokens(
-            Math.ceil(part.length / 4) + GROQ_MAX_OUTPUT_TOKENS
-          );
+          await paceTokens(Math.ceil(part.length / 4) + GROQ_MAX_OUTPUT_TOKENS);
         }
 
         const response = await openai.chat.completions.create({
@@ -428,19 +367,14 @@ export async function summarizeTranscript(
   const config = getSummarizationConfig();
 
   if (!config.apiKey) {
-    throw new Error(
-      `API key not configured for provider: ${config.provider}`
-    );
+    throw new Error(`API key not configured for provider: ${config.provider}`);
   }
 
-  const maxInputTokens =
-    config.provider === 'groq' ? GROQ_MAX_INPUT_TOKENS : 100000;
+  const maxInputTokens = config.provider === 'groq' ? GROQ_MAX_INPUT_TOKENS : 100000;
 
   const estimatedTokens = Math.ceil(transcript.length / 4);
 
-  console.log(
-    `[Summarization] Estimated tokens: ${estimatedTokens}, Max: ${maxInputTokens}`
-  );
+  console.log(`[Summarization] Estimated tokens: ${estimatedTokens}, Max: ${maxInputTokens}`);
 
   let processedTranscript = transcript;
   let wasCropped = false;
@@ -455,18 +389,13 @@ export async function summarizeTranscript(
       maxRetries: 0,
     });
 
-    const parts = chunkText(
-      transcript,
-      isGroq ? GROQ_CHUNK_TOKENS : 30000
-    );
+    const parts = chunkText(transcript, isGroq ? GROQ_CHUNK_TOKENS : 30000);
 
     const digests: string[] = [];
 
     for (const part of parts) {
       if (isGroq) {
-        await paceTokens(
-          Math.ceil(part.length / 4) + 800
-        );
+        await paceTokens(Math.ceil(part.length / 4) + 800);
       }
 
       const digest = await pRetry(async () => {
@@ -495,14 +424,8 @@ export async function summarizeTranscript(
 
     processedTranscript = digests.join('\n\n');
 
-    if (
-      Math.ceil(processedTranscript.length / 4) >
-      maxInputTokens
-    ) {
-      processedTranscript = cropToTokenLimit(
-        processedTranscript,
-        maxInputTokens
-      );
+    if (Math.ceil(processedTranscript.length / 4) > maxInputTokens) {
+      processedTranscript = cropToTokenLimit(processedTranscript, maxInputTokens);
 
       wasCropped = true;
     }
@@ -512,24 +435,17 @@ export async function summarizeTranscript(
 
   let summaryText: string;
 
-  if (
-    config.provider === 'openai' ||
-    config.provider === 'groq' ||
-    config.provider === 'gemini'
-  ) {
+  if (config.provider === 'openai' || config.provider === 'groq' || config.provider === 'gemini') {
     const openai = createOpenAIClient(config, {
       maxRetries: 0,
     });
 
     summaryText = await pRetry(async (attemptNumber) => {
-      console.log(
-        `[Summarization] Attempt ${attemptNumber}...`
-      );
+      console.log(`[Summarization] Attempt ${attemptNumber}...`);
 
       if (config.provider === 'groq') {
         await paceTokens(
-          Math.ceil(processedTranscript.length / 4) +
-            GROQ_MAX_SUMMARY_OUTPUT_TOKENS
+          Math.ceil(processedTranscript.length / 4) + GROQ_MAX_SUMMARY_OUTPUT_TOKENS
         );
       }
 
@@ -558,49 +474,35 @@ export async function summarizeTranscript(
     }, retryOptions('Summarization'));
   } else if (config.provider === 'anthropic') {
     summaryText = await pRetry(async (attemptNumber) => {
-      console.log(
-        `[Anthropic Summarization] Attempt ${attemptNumber}...`
-      );
+      console.log(`[Anthropic Summarization] Attempt ${attemptNumber}...`);
 
-      const response = await fetch(
-        'https://api.anthropic.com/v1/messages',
-        {
-          method: 'POST',
-          headers: {
-            'x-api-key': config.apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: config.summarizationModel,
-            max_tokens: 4096,
-            messages: [
-              {
-                role: 'user',
-                content: `${systemPrompt}\n\nTranscript:\n${processedTranscript}`,
-              },
-            ],
-          }),
-        }
-      );
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': config.apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: config.summarizationModel,
+          max_tokens: 4096,
+          messages: [
+            {
+              role: 'user',
+              content: `${systemPrompt}\n\nTranscript:\n${processedTranscript}`,
+            },
+          ],
+        }),
+      });
 
       if (!response.ok) {
-        const errorText = await response
-          .text()
-          .catch(() => response.statusText);
+        const errorText = await response.text().catch(() => response.statusText);
 
-        if (
-          response.status === 401 ||
-          response.status === 400
-        ) {
-          throw new AbortError(
-            `Anthropic API failed: ${errorText}`
-          );
+        if (response.status === 401 || response.status === 400) {
+          throw new AbortError(`Anthropic API failed: ${errorText}`);
         }
 
-        throw new Error(
-          `Anthropic API failed: ${errorText}`
-        );
+        throw new Error(`Anthropic API failed: ${errorText}`);
       }
 
       const data = await response.json();
@@ -608,9 +510,7 @@ export async function summarizeTranscript(
       return data.content[0].text;
     }, retryOptions('Anthropic'));
   } else {
-    throw new Error(
-      `Summarization not supported for provider: ${config.provider}`
-    );
+    throw new Error(`Summarization not supported for provider: ${config.provider}`);
   }
 
   const parsed = JSON.parse(summaryText);
@@ -618,8 +518,7 @@ export async function summarizeTranscript(
   let summary = parsed.summary || '';
 
   if (wasCropped) {
-    summary =
-      `⚠️ **Note**: Transcript was too long and was cropped to fit within API limits. Only the first ~${maxInputTokens} tokens were processed.\n\n${summary}`;
+    summary = `⚠️ **Note**: Transcript was too long and was cropped to fit within API limits. Only the first ~${maxInputTokens} tokens were processed.\n\n${summary}`;
   }
 
   return {

@@ -66,7 +66,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
     } catch (error) {
       console.error('Failed to generate lecture notes PDF:', error);
       setPdfError(
-        error instanceof Error ? error.message : 'Unable to generate the PDF. Please try again.',
+        error instanceof Error ? error.message : 'Unable to generate the PDF. Please try again.'
       );
     } finally {
       setIsPdfLoading(false);

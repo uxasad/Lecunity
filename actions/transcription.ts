@@ -1,13 +1,8 @@
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import type {
-  MutationResult,
-  LectureNotes,
-  ProcessingState,
-} from '@/types';
+import type { MutationResult, LectureNotes, ProcessingState } from '@/types';
 import { validateFile } from '@/utils/validateFile';
 import {
   extractAudioFromVideo,
@@ -23,20 +18,9 @@ import {
 } from '@/lib/ai';
 import { saveUploadedFile, cleanupUploadedFile } from '@/lib/upload';
 import { promises as fs } from 'fs';
-import {
-  rateLimiter,
-  RATE_LIMITS,
-  getClientId,
-  formatTimeRemaining,
-} from '@/lib/rate-limiter';
-import {
-  downloadMediaFromUrl,
-  isValidMediaUrl,
-} from '@/lib/media-downloader';
-import {
-  downloadYoutubeAudio,
-  isValidYoutubeUrl,
-} from '@/lib/youtube';
+import { rateLimiter, RATE_LIMITS, getClientId, formatTimeRemaining } from '@/lib/rate-limiter';
+import { downloadMediaFromUrl, isValidMediaUrl } from '@/lib/media-downloader';
+import { downloadYoutubeAudio, isValidYoutubeUrl } from '@/lib/youtube';
 import { formatApiError } from '@/utils/format-api-error';
 
 type OutputLanguage = 'english' | 'urdu' | 'roman-urdu';
@@ -61,13 +45,9 @@ export async function createTranscriptionMutation(
     );
 
     if (!hourlyAllowed) {
-      const status = rateLimiter.getStatus(
-        `transcription:hourly:${clientId}`
-      );
+      const status = rateLimiter.getStatus(`transcription:hourly:${clientId}`);
 
-      const resetIn = status
-        ? formatTimeRemaining(status.resetTime)
-        : 'soon';
+      const resetIn = status ? formatTimeRemaining(status.resetTime) : 'soon';
 
       return {
         success: false,
@@ -83,13 +63,9 @@ export async function createTranscriptionMutation(
     );
 
     if (!dailyAllowed) {
-      const status = rateLimiter.getStatus(
-        `transcription:daily:${clientId}`
-      );
+      const status = rateLimiter.getStatus(`transcription:daily:${clientId}`);
 
-      const resetIn = status
-        ? formatTimeRemaining(status.resetTime)
-        : 'tomorrow';
+      const resetIn = status ? formatTimeRemaining(status.resetTime) : 'tomorrow';
 
       return {
         success: false,
@@ -105,8 +81,7 @@ export async function createTranscriptionMutation(
     const requestedLanguage = formData.get('language');
 
     const language: OutputLanguage =
-      requestedLanguage === 'urdu' ||
-      requestedLanguage === 'roman-urdu'
+      requestedLanguage === 'urdu' || requestedLanguage === 'roman-urdu'
         ? requestedLanguage
         : 'english';
 
@@ -143,59 +118,42 @@ export async function createTranscriptionMutation(
         const stats = await fs.stat(audioPath);
         const fileSizeMB = stats.size / (1024 * 1024);
 
-        console.log(
-          `[MediaURL] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`
-        );
+        console.log(`[MediaURL] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`);
 
         if (fileSizeMB > 24) {
           console.log('[MediaURL] Audio too large, compressing...');
 
-          compressedAudio = await compressAudioIfNeeded(
-            audioPath,
-            24
-          );
+          compressedAudio = await compressAudioIfNeeded(audioPath, 24);
 
           audioPath = compressedAudio;
 
           const newStats = await fs.stat(audioPath);
           const newSizeMB = newStats.size / (1024 * 1024);
 
-          console.log(
-            `[MediaURL] Compressed audio size: ${newSizeMB.toFixed(2)}MB`
-          );
+          console.log(`[MediaURL] Compressed audio size: ${newSizeMB.toFixed(2)}MB`);
         }
 
         // Automatically detect the original audio language.
-        const transcriptionResult = await transcribeAudio(
-          audioPath,
-          {
-            temperature: 0,
-          }
-        );
+        const transcriptionResult = await transcribeAudio(audioPath, {
+          temperature: 0,
+        });
 
         // Translate transcript into the selected output language.
-        const transcriptText = await translateTranscript(
-          transcriptionResult.text,
-          language
-        );
+        const transcriptText = await translateTranscript(transcriptionResult.text, language);
 
         // Format transcript and generate lecture notes.
-        const [formattedTranscript, lectureNotes] =
-          await Promise.all([
-            formatTranscript(transcriptText, language),
-            summarizeTranscript(transcriptText, originalFilename, {
-              language,
-              detailLevel: 'detailed',
-            }),
-          ]);
+        const [formattedTranscript, lectureNotes] = await Promise.all([
+          formatTranscript(transcriptText, language),
+          summarizeTranscript(transcriptText, originalFilename, {
+            language,
+            detailLevel: 'detailed',
+          }),
+        ]);
 
         // Cleanup temporary downloaded audio.
         await cleanupUploadedFile(downloadedAudio.audioPath);
 
-        if (
-          compressedAudio &&
-          compressedAudio !== downloadedAudio.audioPath
-        ) {
+        if (compressedAudio && compressedAudio !== downloadedAudio.audioPath) {
           await cleanupUploadedFile(compressedAudio);
         }
 
@@ -214,18 +172,11 @@ export async function createTranscriptionMutation(
       } catch (error) {
         // Cleanup on error.
         if (downloadedAudio?.audioPath) {
-          await cleanupUploadedFile(
-            downloadedAudio.audioPath
-          ).catch(() => {});
+          await cleanupUploadedFile(downloadedAudio.audioPath).catch(() => {});
         }
 
-        if (
-          compressedAudio &&
-          compressedAudio !== downloadedAudio?.audioPath
-        ) {
-          await cleanupUploadedFile(compressedAudio).catch(
-            () => {}
-          );
+        if (compressedAudio && compressedAudio !== downloadedAudio?.audioPath) {
+          await cleanupUploadedFile(compressedAudio).catch(() => {});
         }
 
         throw error;
@@ -258,59 +209,42 @@ export async function createTranscriptionMutation(
         const stats = await fs.stat(audioPath);
         const fileSizeMB = stats.size / (1024 * 1024);
 
-        console.log(
-          `[YouTube] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`
-        );
+        console.log(`[YouTube] Downloaded audio size: ${fileSizeMB.toFixed(2)}MB`);
 
         if (fileSizeMB > 24) {
           console.log('[YouTube] Audio too large, compressing...');
 
-          compressedAudio = await compressAudioIfNeeded(
-            audioPath,
-            24
-          );
+          compressedAudio = await compressAudioIfNeeded(audioPath, 24);
 
           audioPath = compressedAudio;
 
           const newStats = await fs.stat(audioPath);
           const newSizeMB = newStats.size / (1024 * 1024);
 
-          console.log(
-            `[YouTube] Compressed audio size: ${newSizeMB.toFixed(2)}MB`
-          );
+          console.log(`[YouTube] Compressed audio size: ${newSizeMB.toFixed(2)}MB`);
         }
 
         // Automatically detect the original audio language.
-        const transcriptionResult = await transcribeAudio(
-          audioPath,
-          {
-            temperature: 0,
-          }
-        );
+        const transcriptionResult = await transcribeAudio(audioPath, {
+          temperature: 0,
+        });
 
         // Translate transcript into the selected output language.
-        const transcriptText = await translateTranscript(
-          transcriptionResult.text,
-          language
-        );
+        const transcriptText = await translateTranscript(transcriptionResult.text, language);
 
         // Format transcript and generate lecture notes.
-        const [formattedTranscript, lectureNotes] =
-          await Promise.all([
-            formatTranscript(transcriptText, language),
-            summarizeTranscript(transcriptText, originalFilename, {
-              language,
-              detailLevel: 'detailed',
-            }),
-          ]);
+        const [formattedTranscript, lectureNotes] = await Promise.all([
+          formatTranscript(transcriptText, language),
+          summarizeTranscript(transcriptText, originalFilename, {
+            language,
+            detailLevel: 'detailed',
+          }),
+        ]);
 
         // Cleanup temporary downloaded audio.
         await cleanupUploadedFile(downloadedAudio.audioPath);
 
-        if (
-          compressedAudio &&
-          compressedAudio !== downloadedAudio.audioPath
-        ) {
+        if (compressedAudio && compressedAudio !== downloadedAudio.audioPath) {
           await cleanupUploadedFile(compressedAudio);
         }
 
@@ -329,18 +263,11 @@ export async function createTranscriptionMutation(
       } catch (error) {
         // Cleanup on error.
         if (downloadedAudio?.audioPath) {
-          await cleanupUploadedFile(
-            downloadedAudio.audioPath
-          ).catch(() => {});
+          await cleanupUploadedFile(downloadedAudio.audioPath).catch(() => {});
         }
 
-        if (
-          compressedAudio &&
-          compressedAudio !== downloadedAudio?.audioPath
-        ) {
-          await cleanupUploadedFile(compressedAudio).catch(
-            () => {}
-          );
+        if (compressedAudio && compressedAudio !== downloadedAudio?.audioPath) {
+          await cleanupUploadedFile(compressedAudio).catch(() => {});
         }
 
         throw error;
@@ -355,11 +282,7 @@ export async function createTranscriptionMutation(
       };
     }
 
-    const validation = validateFile(
-      file.type,
-      file.size,
-      file.name
-    );
+    const validation = validateFile(file.type, file.size, file.name);
 
     if (!validation.valid) {
       return {
@@ -388,9 +311,7 @@ export async function createTranscriptionMutation(
     try {
       // Extract audio from video if required.
       if (validation.fileType === 'video') {
-        const extractionResult = await extractAudioFromVideo(
-          uploadedFile.filepath
-        );
+        const extractionResult = await extractAudioFromVideo(uploadedFile.filepath);
 
         tempAudioPath = extractionResult.audioPath;
         audioPath = tempAudioPath;
@@ -400,41 +321,26 @@ export async function createTranscriptionMutation(
       const stats = await fs.stat(audioPath);
       const sizeMB = stats.size / (1024 * 1024);
 
-      console.log(
-        `[Transcription] Audio file size: ${sizeMB.toFixed(2)}MB`
-      );
+      console.log(`[Transcription] Audio file size: ${sizeMB.toFixed(2)}MB`);
 
       // Automatically detect original audio language.
-      const transcriptionResult = await transcribeAudio(
-        audioPath,
-        {
-          temperature: 0,
-        }
-      );
+      const transcriptionResult = await transcribeAudio(audioPath, {
+        temperature: 0,
+      });
 
       // Translate transcript into the selected output language.
-      const finalTranscript = await translateTranscript(
-        transcriptionResult.text,
-        language
-      );
+      const finalTranscript = await translateTranscript(transcriptionResult.text, language);
 
       // Format transcript and generate lecture notes.
-      console.log(
-        '[Transcription] Formatting transcript with paragraphs and sections...'
-      );
+      console.log('[Transcription] Formatting transcript with paragraphs and sections...');
 
-      const [formattedTranscript, lectureNotes] =
-        await Promise.all([
-          formatTranscript(finalTranscript, language),
-          summarizeTranscript(
-            finalTranscript,
-            uploadedFile.originalFilename,
-            {
-              detailLevel: 'detailed',
-              language,
-            }
-          ),
-        ]);
+      const [formattedTranscript, lectureNotes] = await Promise.all([
+        formatTranscript(finalTranscript, language),
+        summarizeTranscript(finalTranscript, uploadedFile.originalFilename, {
+          detailLevel: 'detailed',
+          language,
+        }),
+      ]);
 
       const notesWithTranscript: LectureNotes = {
         ...lectureNotes,
@@ -461,26 +367,19 @@ export async function createTranscriptionMutation(
     } catch (error) {
       // Cleanup files if processing fails.
       if (compressedAudioPath) {
-        await cleanupTempFile(compressedAudioPath).catch(
-          () => {}
-        );
+        await cleanupTempFile(compressedAudioPath).catch(() => {});
       }
 
       if (tempAudioPath) {
         await cleanupTempFile(tempAudioPath).catch(() => {});
       }
 
-      await cleanupUploadedFile(uploadedFile.filepath).catch(
-        () => {}
-      );
+      await cleanupUploadedFile(uploadedFile.filepath).catch(() => {});
 
       throw error;
     }
   } catch (error) {
-    console.error(
-      'Transcription mutation failed:',
-      error
-    );
+    console.error('Transcription mutation failed:', error);
 
     return {
       success: false,
@@ -491,9 +390,7 @@ export async function createTranscriptionMutation(
 
 export async function validateFileMutation(
   formData: FormData
-): Promise<
-  MutationResult<{ fileType: string; size: number }>
-> {
+): Promise<MutationResult<{ fileType: string; size: number }>> {
   try {
     const file = formData.get('file') as File | null;
 
@@ -504,11 +401,7 @@ export async function validateFileMutation(
       };
     }
 
-    const validation = validateFile(
-      file.type,
-      file.size,
-      file.name
-    );
+    const validation = validateFile(file.type, file.size, file.name);
 
     if (!validation.valid) {
       return {
@@ -547,13 +440,9 @@ export async function getProcessingStatusAction(
   };
 }
 
-export async function cleanupFilesAction(
-  filePaths: string[]
-): Promise<MutationResult<void>> {
+export async function cleanupFilesAction(filePaths: string[]): Promise<MutationResult<void>> {
   try {
-    await Promise.all(
-      filePaths.map((path) => cleanupUploadedFile(path))
-    );
+    await Promise.all(filePaths.map((path) => cleanupUploadedFile(path)));
 
     return {
       success: true,
@@ -563,10 +452,7 @@ export async function cleanupFilesAction(
 
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Cleanup failed',
+      error: error instanceof Error ? error.message : 'Cleanup failed',
     };
   }
 }

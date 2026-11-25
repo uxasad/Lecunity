@@ -51,7 +51,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 
 <ErrorBoundary>
   <YourComponent />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 ### Custom fallback
@@ -141,21 +141,21 @@ function BuggyComponent() {
 
 <ErrorBoundary>
   <BuggyComponent />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 The boundary should display its fallback UI when the child component throws during rendering.
 
 ## 9. Related Files
 
-| File | Purpose |
-|---|---|
-| `app/error.tsx` | Route-level error handling |
-| `app/global-error.tsx` | Root-level error handling |
-| `app/loading.tsx` | Loading interface |
-| `app/not-found.tsx` | Not-found interface |
+| File                            | Purpose                       |
+| ------------------------------- | ----------------------------- |
+| `app/error.tsx`                 | Route-level error handling    |
+| `app/global-error.tsx`          | Root-level error handling     |
+| `app/loading.tsx`               | Loading interface             |
+| `app/not-found.tsx`             | Not-found interface           |
 | `components/error-boundary.tsx` | Reusable React error boundary |
-| `app/page.tsx` | Homepage integration |
+| `app/page.tsx`                  | Homepage integration          |
 
 ## 10. References
 

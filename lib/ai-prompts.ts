@@ -1,14 +1,10 @@
-
 import type { SummarizationOptions } from '@/types';
 
 /* =========================================
    TRANSLATION PROMPTS
 ========================================= */
 
-export const TRANSLATE_PROMPTS: Record<
-  'english' | 'urdu' | 'roman-urdu',
-  string
-> = {
+export const TRANSLATE_PROMPTS: Record<'english' | 'urdu' | 'roman-urdu', string> = {
   english: `You are a professional translator. Translate the provided lecture transcript into clear, natural English.
 
 CRITICAL RULES:
@@ -58,10 +54,7 @@ Output the translated transcript directly without any preamble or additional exp
    FORMATTING PROMPTS
 ========================================= */
 
-export const FORMAT_PROMPTS: Record<
-  'urdu' | 'roman-urdu' | 'english',
-  string
-> = {
+export const FORMAT_PROMPTS: Record<'urdu' | 'roman-urdu' | 'english', string> = {
   urdu: `آپ ایک اسسٹنٹ ہیں جو لیکچر کے ٹرانسکرپٹ کو پڑھنے اور سمجھنے میں آسان بناتا ہے۔
 
 اہم اصول:
@@ -275,22 +268,15 @@ export const SUMMARIZATION_JSON_SCHEMA = `{
    BUILD SUMMARIZATION PROMPT
 ========================================= */
 
-export function buildSummarizationPrompt(
-  options: SummarizationOptions
-): string {
+export function buildSummarizationPrompt(options: SummarizationOptions): string {
   const detailLevel = options.detailLevel || 'detailed';
   const focusAreas = options.focusAreas?.join(', ') || 'all topics';
   const language = options.language || 'english';
 
   const langKey: 'urdu' | 'roman-urdu' | 'english' =
-    language === 'urdu'
-      ? 'urdu'
-      : language === 'roman-urdu'
-        ? 'roman-urdu'
-        : 'english';
+    language === 'urdu' ? 'urdu' : language === 'roman-urdu' ? 'roman-urdu' : 'english';
 
-  const languageInstruction =
-    SUMMARIZATION_LANGUAGE_INSTRUCTIONS[langKey];
+  const languageInstruction = SUMMARIZATION_LANGUAGE_INSTRUCTIONS[langKey];
 
   const languageLabel =
     langKey === 'urdu'
@@ -299,10 +285,7 @@ export function buildSummarizationPrompt(
         ? 'Roman Urdu (Latin script)'
         : 'English';
 
-  const schema = SUMMARIZATION_JSON_SCHEMA.replace(
-    '{detailLevel}',
-    detailLevel
-  );
+  const schema = SUMMARIZATION_JSON_SCHEMA.replace('{detailLevel}', detailLevel);
 
   return `You are an expert academic note-taker. Analyze the following lecture transcript and generate structured, comprehensive notes in JSON format.
 

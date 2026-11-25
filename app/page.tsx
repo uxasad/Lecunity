@@ -1,5 +1,4 @@
-﻿
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { UploadForm } from '@/components/upload';
@@ -74,9 +73,8 @@ export default function HomePage() {
         </h2>
 
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Upload audio or video files and let AI generate comprehensive,
-          organized lecture notes with key concepts, definitions, examples,
-          and action items.
+          Upload audio or video files and let AI generate comprehensive, organized lecture notes
+          with key concepts, definitions, examples, and action items.
         </p>
 
         {/* History Toggle Button */}
@@ -85,12 +83,7 @@ export default function HomePage() {
             onClick={() => setShowHistory(!showHistory)}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -173,12 +166,9 @@ export default function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Easy Upload
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Easy Upload</h3>
             <p className="text-gray-600">
-              Upload audio and video files or provide a supported media link
-              to get started.
+              Upload audio and video files or provide a supported media link to get started.
             </p>
           </div>
 
@@ -198,12 +188,10 @@ export default function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              AI Processing
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Processing</h3>
             <p className="text-gray-600">
-              AI transcribes audio and organizes the content into structured
-              notes with key concepts and summaries.
+              AI transcribes audio and organizes the content into structured notes with key concepts
+              and summaries.
             </p>
           </div>
 
@@ -223,12 +211,10 @@ export default function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Organized Learning
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Organized Learning</h3>
             <p className="text-gray-600">
-              Convert lectures into clear, structured notes with important
-              concepts, definitions, examples, and summaries.
+              Convert lectures into clear, structured notes with important concepts, definitions,
+              examples, and summaries.
             </p>
           </div>
         </div>

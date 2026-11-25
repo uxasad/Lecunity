@@ -88,9 +88,9 @@ The player uses viewport boundary calculations to keep its position within the v
 
 ## Technical Implementation
 
-| File | Responsibility |
-|---|---|
-| `components/media-player.tsx` | Player interface, playback, dragging and sticky behavior |
-| `components/history.tsx` | Displays previously processed results and their source information |
+| File                          | Responsibility                                                     |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `components/media-player.tsx` | Player interface, playback, dragging and sticky behavior           |
+| `components/history.tsx`      | Displays previously processed results and their source information |
 
 The player is designed to be lightweight and adaptable, with clear separation of concerns between the interface and the playback logic.

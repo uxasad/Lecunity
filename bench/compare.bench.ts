@@ -8,7 +8,11 @@ if (process.env.BENCH_MODEL) process.env.GROQ_TRANSCRIPTION_MODEL = process.env.
 else delete process.env.GROQ_TRANSCRIPTION_MODEL;
 
 const norm = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
 
 function wer(ref: string[], hyp: string[]) {
   const d = Array.from({ length: ref.length + 1 }, (_, i) => [i, ...Array(hyp.length).fill(0)]);
@@ -36,13 +40,21 @@ it('before vs after', async () => {
   let t = Date.now();
   const before = await transcribeWithGroq(
     audio,
-    { provider: 'groq', transcriptionModel: 'whisper-large-v3', summarizationModel: '', apiKey: key },
+    {
+      provider: 'groq',
+      transcriptionModel: 'whisper-large-v3',
+      summarizationModel: '',
+      apiKey: key,
+    },
     { language: process.env.BENCH_LANG }
   );
   const tBefore = (Date.now() - t) / 1000;
 
   t = Date.now();
-  const after = await transcribeAudioChunked(audio, { language: process.env.BENCH_LANG, temperature: 0 });
+  const after = await transcribeAudioChunked(audio, {
+    language: process.env.BENCH_LANG,
+    temperature: 0,
+  });
   const tAfter = (Date.now() - t) / 1000;
 
   const row = (name: string, r: any, sec: number) => ({
@@ -54,6 +66,10 @@ it('before vs after', async () => {
     WER_pct: hasRef ? +(wer(ref, norm(r.text)) * 100).toFixed(2) : null,
   });
   console.log('BEFORE:', before.text.slice(0, 300), '\nAFTER:', after.text.slice(0, 300));
-  if (!hasRef) console.log('diff_before_vs_after_pct', +(wer(norm(before.text), norm(after.text)) * 100).toFixed(2));
+  if (!hasRef)
+    console.log(
+      'diff_before_vs_after_pct',
+      +(wer(norm(before.text), norm(after.text)) * 100).toFixed(2)
+    );
   console.table([row('before', before, tBefore), row('after', after, tAfter)]);
 }, 1_800_000);

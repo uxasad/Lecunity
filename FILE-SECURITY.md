@@ -142,8 +142,8 @@ The current implementation has the following limitations:
 
 ## 9. Relevant Source Files
 
-| File | Responsibility |
-|---|---|
-| `utils/validateFile.ts` | MIME type, extension, and file-size validation |
-| `lib/file-security.ts` | Signature validation, integrity checks, and basic content scanning |
-| `lib/upload.ts` | Upload parsing, file storage, security validation, and cleanup |
+| File                    | Responsibility                                                     |
+| ----------------------- | ------------------------------------------------------------------ |
+| `utils/validateFile.ts` | MIME type, extension, and file-size validation                     |
+| `lib/file-security.ts`  | Signature validation, integrity checks, and basic content scanning |
+| `lib/upload.ts`         | Upload parsing, file storage, security validation, and cleanup     |

@@ -79,12 +79,12 @@ GEMINI_SUMMARIZATION_MODEL=gemini-3.6-flash
 
 The application also supports these providers:
 
-| Provider | Purpose |
-|---|---|
-| OpenAI | Transcription and text generation |
-| Groq | Transcription and text generation |
-| Deepgram | Transcription |
-| Gemini | Text generation |
+| Provider  | Purpose                           |
+| --------- | --------------------------------- |
+| OpenAI    | Transcription and text generation |
+| Groq      | Transcription and text generation |
+| Deepgram  | Transcription                     |
+| Gemini    | Text generation                   |
 | Anthropic | Text generation and summarization |
 
 Configure the relevant provider API key and model settings when using an alternative provider.
@@ -126,15 +126,15 @@ Never commit `.env.local` or other files containing API keys.
 
 ## 4. Development Commands
 
-| Command | Purpose |
-|---|---|
-| `pnpm dev` | Start development server |
-| `pnpm build` | Build production application |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run ESLint |
-| `pnpm type-check` | Check TypeScript types |
-| `pnpm format` | Format supported files |
-| `pnpm format:check` | Check formatting |
+| Command             | Purpose                      |
+| ------------------- | ---------------------------- |
+| `pnpm dev`          | Start development server     |
+| `pnpm build`        | Build production application |
+| `pnpm start`        | Start production server      |
+| `pnpm lint`         | Run ESLint                   |
+| `pnpm type-check`   | Check TypeScript types       |
+| `pnpm format`       | Format supported files       |
+| `pnpm format:check` | Check formatting             |
 
 ## 5. Testing Commands
 
