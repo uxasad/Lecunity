@@ -61,3 +61,6 @@ next-env.d.ts
 /playwright-report/
 
 /bench/real.mp3
+# Ignore all environment files except the example
+.env*
+!.env.example

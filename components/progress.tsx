@@ -52,7 +52,7 @@ export function ProgressIndicator({
 
       {/* Details */}
       {details && (
-        <div className="text-xs text-gray-600 bg-white p-2 rounded border border-gray-200">
+        <div className="text-xs text-gray-600 bg-surface p-2 rounded border border-gray-200">
           <span className="font-mono">{details}</span>
         </div>
       )}

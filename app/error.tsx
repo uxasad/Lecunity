@@ -15,8 +15,8 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center px-4">
-      <div className="max-w-2xl w-full bg-white rounded-lg shadow-xl p-8">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
+      <div className="max-w-2xl w-full bg-surface rounded-lg shadow-xl p-8">
         <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-6">
           <svg
             className="w-8 h-8 text-red-600"
@@ -55,7 +55,7 @@ export default function Error({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={reset}
-            className="px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+            className="px-6 py-3 bg-primary-600 text-forest font-medium rounded-lg hover:bg-primary-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
             Try Again
           </button>

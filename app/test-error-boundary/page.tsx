@@ -26,7 +26,7 @@ export default function ErrorTestPage() {
 
       <div className="space-y-8">
         {/* Test 1: Normal component (no error) */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-surface p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Test 1: Normal Component (No Error)
           </h2>
@@ -36,7 +36,7 @@ export default function ErrorTestPage() {
         </div>
 
         {/* Test 2: Component that throws error */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-surface p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Test 2: Component with Error (Error Boundary catches it)
           </h2>
@@ -46,7 +46,7 @@ export default function ErrorTestPage() {
         </div>
 
         {/* Test 3: Custom fallback */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-surface p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Test 3: Custom Fallback UI</h2>
           <ErrorBoundary
             fallback={
@@ -60,7 +60,7 @@ export default function ErrorTestPage() {
         </div>
 
         {/* Test 4: With error callback */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-surface p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Test 4: With Error Callback (Check console)
           </h2>

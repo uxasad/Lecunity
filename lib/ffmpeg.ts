@@ -1,4 +1,3 @@
-
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -6,8 +5,10 @@ import ffmpeg from 'fluent-ffmpeg';
 
 // Resolve platform-specific static binaries.
 // Environment variables take priority when explicitly configured.
-const ffmpegStaticPath = require('ffmpeg-static') as string | null;
-const ffprobeStaticPath = (require('ffprobe-static') as { path?: string }).path;
+const ffmpegStaticPath = process.env.FFMPEG_PATH || (require('ffmpeg-static') as string | null);
+
+const ffprobeStaticPath =
+  process.env.FFPROBE_PATH || (require('ffprobe-static') as { path?: string }).path;
 
 // Auto-detect FFmpeg and FFprobe paths as a fallback.
 function detectBinaryPath(binaryName: string): string {
@@ -22,17 +23,14 @@ function detectBinaryPath(binaryName: string): string {
 
     for (const testPath of windowsPaths) {
       try {
-        const result = execSync(
-          `if exist "${testPath}" (echo exists)`,
-          {
-            encoding: 'utf8',
-            stdio: ['pipe', 'pipe', 'ignore'],
-            shell: 'cmd.exe',
-          }
-        ).trim();
+        const result = execSync(`if exist "${testPath}" (echo exists)`, {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'ignore'],
+          shell: 'cmd.exe',
+        }).trim();
 
         if (result === 'exists') {
-          console.log(`[FFmpeg] Found ${binaryName} at: ${testPath}`);
+          console.log(`[FFmpeg] Found ${binaryName} executable`);
           return testPath;
         }
       } catch {
@@ -49,7 +47,7 @@ function detectBinaryPath(binaryName: string): string {
       const firstPath = result.split(/\r?\n/)[0];
 
       if (firstPath) {
-        console.log(`[FFmpeg] Found ${binaryName} via PATH: ${firstPath}`);
+        console.log(`[FFmpeg] Found ${binaryName} on PATH`);
         return firstPath;
       }
     } catch {
@@ -72,7 +70,7 @@ function detectBinaryPath(binaryName: string): string {
         }).trim();
 
         if (result === 'exists') {
-          console.log(`[FFmpeg] Found ${binaryName} at: ${testPath}`);
+          console.log(`[FFmpeg] Found ${binaryName} executable`);
           return testPath;
         }
       } catch {
@@ -87,7 +85,7 @@ function detectBinaryPath(binaryName: string): string {
       }).trim();
 
       if (result) {
-        console.log(`[FFmpeg] Found ${binaryName} via PATH: ${result}`);
+        console.log(`[FFmpeg] Found ${binaryName} on PATH`);
         return result;
       }
     } catch {
@@ -95,65 +93,102 @@ function detectBinaryPath(binaryName: string): string {
     }
   }
 
-  console.warn(`[FFmpeg] Using binary name as fallback: ${binaryName}`);
+  console.warn(`[FFmpeg] Using ${binaryName} executable name as fallback`);
   return binaryName;
 }
 
-const FFMPEG_PATH =
-  process.env.FFMPEG_PATH ||
-  ffmpegStaticPath ||
-  detectBinaryPath('ffmpeg');
+const FFMPEG_PATH = process.env.FFMPEG_PATH || ffmpegStaticPath || detectBinaryPath('ffmpeg');
 
-const FFPROBE_PATH =
-  process.env.FFPROBE_PATH ||
-  ffprobeStaticPath ||
-  detectBinaryPath('ffprobe');
-
-console.log('[FFmpeg] Configured paths:', {
-  FFMPEG_PATH,
-  FFPROBE_PATH,
-});
+const FFPROBE_PATH = process.env.FFPROBE_PATH || ffprobeStaticPath || detectBinaryPath('ffprobe');
 
 // Configure fluent-ffmpeg.
 ffmpeg.setFfmpegPath(FFMPEG_PATH);
 ffmpeg.setFfprobePath(FFPROBE_PATH);
 
-// Runtime validation.
-function validateFFmpegInstallation(): {
+const FFMPEG_VALIDATION_TIMEOUT_MS = 5000;
+
+export interface FFmpegValidationResult {
   isValid: boolean;
   details: string;
-} {
+}
+
+function safeProcessField(value: unknown): string {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  if (typeof value === 'string') {
+    return /^[A-Za-z0-9_.-]{1,80}$/.test(value) ? value : 'redacted';
+  }
+
+  return 'unknown';
+}
+
+function describeProcessError(error: unknown): string {
+  if (typeof error !== 'object' || error === null) {
+    return 'process execution failed';
+  }
+
+  const failure = error as {
+    code?: unknown;
+    status?: unknown;
+    signal?: unknown;
+    killed?: unknown;
+  };
+  const details: string[] = [];
+
+  if (failure.code !== undefined && failure.code !== null) {
+    details.push(`code=${safeProcessField(failure.code)}`);
+  }
+  if ('status' in failure) {
+    details.push(
+      `exitStatus=${failure.status === null ? 'none' : safeProcessField(failure.status)}`
+    );
+  }
+  if ('signal' in failure) {
+    details.push(`signal=${failure.signal === null ? 'none' : safeProcessField(failure.signal)}`);
+  }
+
+  const message = error instanceof Error ? error.message.toLowerCase() : '';
+  if (failure.killed === true || failure.code === 'ETIMEDOUT' || message.includes('timed out')) {
+    details.push(`timedOut=true (${FFMPEG_VALIDATION_TIMEOUT_MS}ms)`);
+  }
+
+  return details.length > 0 ? details.join(', ') : 'process execution failed';
+}
+
+export function validateFFmpegInstallation(): FFmpegValidationResult {
   const errors: string[] = [];
 
   try {
     execSync(`"${FFMPEG_PATH}" -version`, {
       stdio: 'ignore',
-      timeout: 5000,
+      timeout: FFMPEG_VALIDATION_TIMEOUT_MS,
     });
-    console.log(`[FFmpeg] ffmpeg is working (${FFMPEG_PATH})`);
-  } catch (error: any) {
-    const errorMsg = `ffmpeg not executable at: ${FFMPEG_PATH}`;
-    console.error(`[FFmpeg] ${errorMsg}`, error.message);
-    errors.push(errorMsg);
+    console.log('[FFmpeg] ffmpeg is working');
+  } catch (error) {
+    const errorDetails = describeProcessError(error);
+    const errorMessage = `ffmpeg validation failed (${errorDetails})`;
+    console.error(`[FFmpeg] ${errorMessage}`);
+    errors.push(errorMessage);
   }
 
   try {
     execSync(`"${FFPROBE_PATH}" -version`, {
       stdio: 'ignore',
-      timeout: 5000,
+      timeout: FFMPEG_VALIDATION_TIMEOUT_MS,
     });
-    console.log(`[FFmpeg] ffprobe is working (${FFPROBE_PATH})`);
-  } catch (error: any) {
-    const errorMsg = `ffprobe not executable at: ${FFPROBE_PATH}`;
-    console.error(`[FFmpeg] ${errorMsg}`, error.message);
-    errors.push(errorMsg);
+    console.log('[FFmpeg] ffprobe is working');
+  } catch (error) {
+    const errorDetails = describeProcessError(error);
+    const errorMessage = `ffprobe validation failed (${errorDetails})`;
+    console.error(`[FFmpeg] ${errorMessage}`);
+    errors.push(errorMessage);
   }
 
   if (errors.length > 0) {
     const details =
       `FFmpeg not available:\n\n${errors.join('\n')}\n\n` +
-      `Configured FFmpeg path: ${FFMPEG_PATH}\n` +
-      `Configured FFprobe path: ${FFPROBE_PATH}\n\n` +
       `Check that ffmpeg-static and ffprobe-static are installed ` +
       `and their binaries are available for the current platform.`;
 
@@ -171,7 +206,7 @@ export function checkFFmpegAvailable(): boolean {
   try {
     return validateFFmpegInstallation().isValid;
   } catch (error) {
-    console.error('[FFmpeg] Validation error:', error);
+    console.error(`[FFmpeg] Validation error (${describeProcessError(error)})`);
     return false;
   }
 }
@@ -179,8 +214,8 @@ export function checkFFmpegAvailable(): boolean {
 export function getFFmpegValidationDetails(): string {
   try {
     return validateFFmpegInstallation().details;
-  } catch (error: any) {
-    return `FFmpeg validation error: ${error.message}`;
+  } catch (error) {
+    return `FFmpeg validation error (${describeProcessError(error)})`;
   }
 }
 
@@ -271,10 +306,7 @@ export async function getAudioDuration(filePath: string): Promise<number> {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(filePath, (err, metadata) => {
       if (err) {
-        if (
-          err.message &&
-          (err.message.includes('ENOENT') || err.message.includes('spawn'))
-        ) {
+        if (err.message && (err.message.includes('ENOENT') || err.message.includes('spawn'))) {
           reject(
             new Error(
               `FFprobe binary not found.\n` +
@@ -331,9 +363,7 @@ export async function compressAudioIfNeeded(
   const stats = await fs.stat(inputPath);
   const currentSizeMB = stats.size / (1024 * 1024);
 
-  console.log(
-    `[Compress] Current size: ${currentSizeMB.toFixed(2)}MB, target: ${targetSizeMB}MB`
-  );
+  console.log(`[Compress] Current size: ${currentSizeMB.toFixed(2)}MB, target: ${targetSizeMB}MB`);
 
   if (currentSizeMB <= targetSizeMB) {
     console.log('[Compress] File already within target size');
@@ -354,9 +384,7 @@ export async function compressAudioIfNeeded(
   const targetBitrate = Math.floor((targetSizeMB * 8192) / duration);
   const bitrate = Math.max(32, Math.min(targetBitrate, 64));
 
-  console.log(
-    `[Compress] Compressing with ${bitrate}kbps (duration: ${duration.toFixed(2)}s)`
-  );
+  console.log(`[Compress] Compressing with ${bitrate}kbps (duration: ${duration.toFixed(2)}s)`);
 
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
@@ -391,9 +419,7 @@ export async function cleanupTempFile(filePath: string): Promise<void> {
   }
 }
 
-export async function getAudioMetadata(
-  filePath: string
-): Promise<{
+export async function getAudioMetadata(filePath: string): Promise<{
   duration: number;
   bitrate: number;
   sampleRate: number;
@@ -404,9 +430,7 @@ export async function getAudioMetadata(
       if (err) {
         reject(new Error(`Failed to get audio metadata: ${err.message}`));
       } else {
-        const audioStream = metadata.streams.find(
-          (s) => s.codec_type === 'audio'
-        );
+        const audioStream = metadata.streams.find((s) => s.codec_type === 'audio');
 
         resolve({
           duration: metadata.format.duration || 0,
@@ -424,6 +448,128 @@ export interface AudioChunk {
   offsetSeconds: number;
 }
 
+function sanitizeFfmpegDiagnostic(value: string, paths: string[] = []): string {
+  let sanitized = value;
+
+  for (const filePath of paths) {
+    if (filePath) {
+      sanitized = sanitized
+        .split(filePath)
+        .join('[path]')
+        .split(filePath.replace(/\\/g, '/'))
+        .join('[path]');
+    }
+  }
+
+  return sanitized
+    .replace(/(https?:\/\/)[^\s/@]+@[^\s/]+/gi, '$1[redacted]@')
+    .replace(
+      /([?&](?:access_token|api_key|key|password|signature|token)=)[^&\s]+/gi,
+      '$1[redacted]'
+    );
+}
+
+interface ProbedAudioStream {
+  index: number;
+  codec: string;
+  channels: number;
+  sampleRate: number;
+}
+
+async function getAudioStreamInfo(inputPath: string): Promise<ProbedAudioStream> {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(inputPath, (error, metadata) => {
+      if (error) {
+        const detail = sanitizeFfmpegDiagnostic(error.message, [inputPath]).slice(-2000);
+        reject(
+          new Error(
+            `Input media is invalid or corrupted; ffprobe could not inspect an audio stream. ${detail}`
+          )
+        );
+        return;
+      }
+
+      const audioStreams = metadata.streams.filter((stream) => stream.codec_type === 'audio');
+
+      if (audioStreams.length === 0) {
+        reject(new Error('Input media contains no usable audio stream.'));
+        return;
+      }
+
+      const audioStream = audioStreams.find((stream) => {
+        const channels = Number(stream.channels);
+        const sampleRate = Number(stream.sample_rate);
+        return (
+          Number.isSafeInteger(stream.index) &&
+          typeof stream.codec_name === 'string' &&
+          stream.codec_name.length > 0 &&
+          stream.codec_name !== 'unknown' &&
+          Number.isSafeInteger(channels) &&
+          channels > 0 &&
+          Number.isSafeInteger(sampleRate) &&
+          sampleRate > 0
+        );
+      });
+
+      if (!audioStream || !audioStream.codec_name) {
+        const firstStream = audioStreams[0];
+        reject(
+          new Error(
+            `Input audio stream has invalid parameters (codec=${firstStream.codec_name || 'unknown'}, channels=${firstStream.channels ?? 'unknown'}, sampleRate=${firstStream.sample_rate ?? 'unknown'}).`
+          )
+        );
+        return;
+      }
+
+      const streamInfo = {
+        index: audioStream.index,
+        codec: audioStream.codec_name,
+        channels: Number(audioStream.channels),
+        sampleRate: Number(audioStream.sample_rate),
+      };
+      console.log('[FFmpeg] Probed audio stream', streamInfo);
+      resolve(streamInfo);
+    });
+  });
+}
+
+function runFfmpegWithDiagnostics(
+  command: ReturnType<typeof ffmpeg>,
+  outputPath: string,
+  operation: string,
+  paths: string[]
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let commandLine = '';
+    const stderrLines: string[] = [];
+
+    command
+      .on('start', (cmd) => {
+        commandLine = sanitizeFfmpegDiagnostic(cmd, paths);
+      })
+      .on('stderr', (line) => {
+        stderrLines.push(line);
+        if (stderrLines.length > 40) {
+          stderrLines.shift();
+        }
+      })
+      .on('end', () => resolve())
+      .on('error', (error) => {
+        const stderr = sanitizeFfmpegDiagnostic(
+          stderrLines.length ? stderrLines.join('\n') : error.message,
+          paths
+        ).slice(-6000);
+        const processError = sanitizeFfmpegDiagnostic(error.message, paths);
+        reject(
+          new Error(
+            `${operation} failed.\nCommand: ${commandLine || '[unavailable]'}\nFFmpeg error: ${processError}\nFFmpeg stderr:\n${stderr}`
+          )
+        );
+      })
+      .save(outputPath);
+  });
+}
+
 /**
  * Prep for transcription: mono 16kHz 64kbps MP3,
  * split into fixed-length chunks so every request stays
@@ -434,6 +580,27 @@ export async function prepareAudioChunks(
   chunkSeconds: number = 600,
   outputRoot: string = '/tmp'
 ): Promise<{ chunks: AudioChunk[]; dir: string }> {
+  let inputStats;
+
+  try {
+    inputStats = await fs.stat(inputPath);
+  } catch (error) {
+    const detail =
+      error instanceof Error
+        ? sanitizeFfmpegDiagnostic(error.message, [inputPath])
+        : 'Unknown filesystem error';
+    throw new Error(`Unable to access audio input file: ${detail}`);
+  }
+
+  if (!inputStats.isFile()) {
+    throw new Error('Audio chunking input must be a file.');
+  }
+
+  if (inputStats.size === 0) {
+    throw new Error('Audio chunking input file is empty.');
+  }
+
+  const audioStream = await getAudioStreamInfo(inputPath);
   const dir = path.join(
     outputRoot,
     `chunks_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
@@ -443,41 +610,85 @@ export async function prepareAudioChunks(
 
   const pattern = path.join(dir, 'chunk_%03d.mp3');
 
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg(inputPath)
-      .noVideo()
-      .audioChannels(1)
-      .audioFrequency(16000)
-      .audioBitrate(64)
-      .audioCodec('libmp3lame')
-      .outputOptions([
-        '-f',
-        'segment',
-        '-segment_time',
-        String(chunkSeconds),
-        '-reset_timestamps',
-        '1',
-      ])
-      .on('end', () => resolve())
-      .on('error', (err) => {
-        reject(new Error(`Audio chunking failed: ${err.message}`));
-      })
-      .save(pattern);
-  });
+  try {
+    const preflightPath = path.join(dir, 'audio_preflight.pcm');
+    await runFfmpegWithDiagnostics(
+      ffmpeg(inputPath)
+        .noVideo()
+        .outputOptions([
+          '-map',
+          `0:${audioStream.index}`,
+          '-frames:a',
+          '1',
+          '-xerror',
+          '-acodec',
+          'pcm_s16le',
+          '-f',
+          's16le',
+        ]),
+      preflightPath,
+      'Audio decode preflight',
+      [inputPath, dir, preflightPath]
+    );
 
-  const files = (await fs.readdir(dir))
-    .filter((file) => file.endsWith('.mp3'))
-    .sort();
+    const preflightStats = await fs.stat(preflightPath);
+    if (!preflightStats.isFile() || preflightStats.size === 0) {
+      throw new Error('Input media contains no decodable audio frames.');
+    }
 
-  if (files.length === 0) {
-    throw new Error('No audio found (file may be silent)');
+    await fs.unlink(preflightPath);
+    console.log('[FFmpeg] Audio decode preflight passed', {
+      decodedBytes: preflightStats.size,
+    });
+
+    await runFfmpegWithDiagnostics(
+      ffmpeg(inputPath)
+        .noVideo()
+        .audioChannels(1)
+        .audioFrequency(16000)
+        .audioBitrate(64)
+        .audioCodec('libmp3lame')
+        .outputOptions([
+          '-map',
+          `0:${audioStream.index}`,
+          '-f',
+          'segment',
+          '-segment_time',
+          String(chunkSeconds),
+          '-reset_timestamps',
+          '1',
+        ]),
+      pattern,
+      'Audio chunking',
+      [inputPath, dir, pattern]
+    );
+
+    const files = (await fs.readdir(dir)).filter((file) => file.endsWith('.mp3')).sort();
+
+    if (files.length === 0) {
+      throw new Error('No audio chunks were produced.');
+    }
+
+    return {
+      dir,
+      chunks: files.map((file, index) => ({
+        path: path.join(dir, file),
+        offsetSeconds: index * chunkSeconds,
+      })),
+    };
+  } catch (error) {
+    try {
+      await fs.rm(dir, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.error(
+        `[FFmpeg] Failed to clean temporary chunk directory: ${
+          cleanupError instanceof Error
+            ? sanitizeFfmpegDiagnostic(cleanupError.message, [dir])
+            : 'Unknown cleanup error'
+        }`
+      );
+    }
+
+    throw error;
   }
-
-  return {
-    dir,
-    chunks: files.map((file, index) => ({
-      path: path.join(dir, file),
-      offsetSeconds: index * chunkSeconds,
-    })),
-  };
 }

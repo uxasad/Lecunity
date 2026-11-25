@@ -83,7 +83,7 @@ export default function HomePage() {
         <div className="mt-6">
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
             <svg
               className="w-5 h-5"
@@ -145,7 +145,7 @@ export default function HomePage() {
             <div className="flex justify-center">
               <button
                 onClick={handleReset}
-                className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-6 py-3 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
               >
                 ← Upload Another File
               </button>
@@ -208,9 +208,9 @@ export default function HomePage() {
           </div>
 
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-lg mb-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-lg mb-4">
               <svg
-                className="h-6 w-6 text-emerald-600"
+                className="h-6 w-6 text-primary-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

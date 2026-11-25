@@ -226,13 +226,12 @@ export const SUMMARIZATION_JSON_SCHEMA = `{
   "title": "A clear, descriptive title for the lecture",
   "summary": "A {detailLevel} overview paragraph (3-5 sentences) summarizing the main themes and takeaways",
   "paragraphs": [
-    "Array of well-structured paragraphs covering main topics in logical order",
-    "Each paragraph should be 3-5 sentences",
+    "Well-structured paragraphs covering the main topics in logical order",
+    "Each paragraph should contain 3-5 sentences",
     "Maintain academic writing style"
   ],
   "bulletPoints": [
     "Concise key points",
-    "Action items",
     "Important facts",
     "Main arguments"
   ],
@@ -247,13 +246,13 @@ export const SUMMARIZATION_JSON_SCHEMA = `{
     {
       "term": "Technical term or concept",
       "definition": "Precise definition",
-      "context": "How it's used in the lecture"
+      "context": "How it is used in the lecture"
     }
   ],
   "exampleProblems": [
     {
-      "problem": "Problem statement or question",
-      "solution": "Solution if provided",
+      "problem": "Problem statement or question. Clearly label AI-generated examples.",
+      "solution": "Correct solution",
       "explanation": "Step-by-step explanation"
     }
   ],
@@ -266,10 +265,9 @@ export const SUMMARIZATION_JSON_SCHEMA = `{
     }
   ],
   "actionItems": [
-    "Tasks mentioned",
+    "Tasks mentioned in the lecture",
     "Assignments",
-    "Follow-up items",
-    "Further reading suggestions"
+    "Follow-up items"
   ]
 }`;
 
@@ -277,7 +275,9 @@ export const SUMMARIZATION_JSON_SCHEMA = `{
    BUILD SUMMARIZATION PROMPT
 ========================================= */
 
-export function buildSummarizationPrompt(options: SummarizationOptions): string {
+export function buildSummarizationPrompt(
+  options: SummarizationOptions
+): string {
   const detailLevel = options.detailLevel || 'detailed';
   const focusAreas = options.focusAreas?.join(', ') || 'all topics';
   const language = options.language || 'english';
@@ -289,7 +289,8 @@ export function buildSummarizationPrompt(options: SummarizationOptions): string 
         ? 'roman-urdu'
         : 'english';
 
-  const languageInstruction = SUMMARIZATION_LANGUAGE_INSTRUCTIONS[langKey];
+  const languageInstruction =
+    SUMMARIZATION_LANGUAGE_INSTRUCTIONS[langKey];
 
   const languageLabel =
     langKey === 'urdu'
@@ -314,21 +315,34 @@ Generate a JSON object with the following structure:
 ${schema}
 
 Rules:
-- Extract all key concepts, definitions, and examples mentioned.
+- Extract all key concepts, definitions, and examples mentioned in the lecture.
+- Write a meaningful summary covering the lecture's main ideas.
+- Organize detailed notes into clear paragraphs covering the major topics.
+- Include important concepts and explain their relevance.
+- Provide accurate definitions for technical terms.
+- Extract examples explicitly discussed in the lecture first.
+- If the lecture contains suitable examples, include those examples in exampleProblems.
+- If the lecture contains fewer than 2 suitable examples, create additional relevant illustrative examples based on the concepts taught.
+- Aim to provide 2-4 useful examples in total.
+- Clearly label every AI-generated example as an AI-generated illustrative example in the specified output language.
+- Never present an AI-generated example as something stated in the original lecture.
+- Each example must contain a clear problem or scenario, a correct solution, and an understandable explanation.
+- Make examples practical and directly relevant to the lecture concepts.
+- Do not create unrelated or overly complicated examples just to fill the section.
 - Generate 5-10 multiple choice quiz questions that test comprehension of key concepts.
-- Quiz questions should cover important topics from the lecture.
-- Each quiz question must have 4 options with exactly one correct answer.
-- correctAnswer is the index (0-3) of the correct option in the options array.
-- Include an explanation for each quiz answer to aid learning.
+- Quiz questions should cover different important topics from the lecture.
+- Each quiz question must have exactly 4 options with exactly one correct answer.
+- correctAnswer must be the zero-based index (0-3) of the correct option in the options array.
+- Include an explanation for each quiz answer.
 - Organize information logically and hierarchically.
 - Write all generated content in the specified language: ${languageLabel}.
 - Preserve original quotations, names, formulas, and references exactly as provided.
-- Do not invent quotations, facts, translations, or references.
+- Do not invent quotations, facts, statistics, or references.
 - Identify relationships between concepts.
 - Highlight important formulas, theories, or frameworks.
-- Note any examples, case studies, or illustrations used.
-- Capture action items and next steps.
-- If no example problems are present, return an empty array.
+- Capture actual assignments, tasks, and next steps mentioned in the lecture.
+- Do not invent assignments or claim that suggestions were given by the lecturer.
+- Ensure all JSON fields follow the provided schema.
 - Ensure all JSON is valid and properly formatted.
-- Do not include any text outside the JSON object.`;
+- Do not include markdown fences or any text outside the JSON object.`;
 }

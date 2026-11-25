@@ -13,8 +13,7 @@ import {
   extractAudioFromVideo,
   cleanupTempFile,
   compressAudioIfNeeded,
-  checkFFmpegAvailable,
-  getFFmpegValidationDetails,
+  validateFFmpegInstallation,
 } from '@/lib/ffmpeg';
 import {
   transcribeAudioChunked as transcribeAudio,
@@ -370,14 +369,14 @@ export async function createTranscriptionMutation(
     }
 
     // Check FFmpeg availability for video files.
-    if (
-      validation.fileType === 'video' &&
-      !checkFFmpegAvailable()
-    ) {
-      return {
-        success: false,
-        error: getFFmpegValidationDetails(),
-      };
+    if (validation.fileType === 'video') {
+      const ffmpegValidation = validateFFmpegInstallation();
+      if (!ffmpegValidation.isValid) {
+        return {
+          success: false,
+          error: ffmpegValidation.details,
+        };
+      }
     }
 
     const uploadedFile = await saveUploadedFile(file);

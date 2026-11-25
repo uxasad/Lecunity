@@ -435,7 +435,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
             onClick={() => setInputMode('file')}
             className={`px-6 py-2 rounded-lg font-medium transition-colors ${
               inputMode === 'file'
-                ? 'bg-primary-600 text-white cursor-default'
+                ? 'bg-primary-600 text-forest cursor-default'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
             }`}
           >
@@ -446,7 +446,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
             onClick={() => setInputMode('youtube')}
             className={`px-6 py-2 rounded-lg font-medium transition-colors ${
               inputMode === 'youtube'
-                ? 'bg-primary-600 text-white cursor-default'
+                ? 'bg-primary-600 text-forest cursor-default'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
             }`}
           >
@@ -457,7 +457,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
             onClick={() => setInputMode('url')}
             className={`px-6 py-2 rounded-lg font-medium transition-colors ${
               inputMode === 'url'
-                ? 'bg-primary-600 text-white cursor-default'
+                ? 'bg-primary-600 text-forest cursor-default'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
             }`}
           >
@@ -637,7 +637,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                   className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
                     language === 'english'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      : 'border-gray-300 bg-surface text-gray-700 hover:border-gray-400'
                   }`}
                 >
                   <span className="text-2xl mr-2">🇬🇧</span>
@@ -650,7 +650,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                   className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
                     language === 'urdu'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      : 'border-gray-300 bg-surface text-gray-700 hover:border-gray-400'
                   }`}
                 >
                   <span className="text-2xl mr-2">🇵🇰</span>
@@ -663,7 +663,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
                   className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
                     language === 'roman-urdu'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      : 'border-gray-300 bg-surface text-gray-700 hover:border-gray-400'
                   }`}
                 >
                   <span className="text-2xl mr-2">🇵🇰</span>
@@ -698,7 +698,7 @@ export function UploadForm({ onSuccess, onError }: UploadFormProps) {
             (inputMode === 'url' && !mediaUrl) ||
             isUploading
           }
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-forest bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-canvas focus:ring-primary-500 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
         >
           {isUploading ? 'Processing...' : 'Generate Lecture Notes'}
         </button>

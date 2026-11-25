@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-[400px] flex items-center justify-center px-4 py-8">
-          <div className="max-w-md w-full bg-white border border-red-200 rounded-lg shadow-lg p-6">
+          <div className="max-w-md w-full bg-surface border border-red-200 rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
               <svg
                 className="w-6 h-6 text-red-600"
@@ -96,7 +96,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <button
               onClick={this.handleReset}
-              className="w-full px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+              className="w-full px-4 py-2 bg-primary-600 text-forest font-medium rounded-lg hover:bg-primary-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
             >
               Try Again
             </button>

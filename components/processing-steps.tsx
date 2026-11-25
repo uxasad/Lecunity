@@ -46,9 +46,9 @@ export function ProcessingSteps({ currentStep }: ProcessingStepsProps) {
                     transition-all duration-300 border-2
                     ${
                       isCompleted
-                        ? 'bg-green-500 border-green-500 text-white scale-100'
+                        ? 'bg-green-500 border-green-500 text-forest scale-100'
                         : isCurrent
-                          ? 'bg-primary-500 border-primary-500 text-white scale-110 shadow-lg animate-pulse'
+                          ? 'bg-primary-500 border-primary-500 text-forest scale-110 shadow-lg animate-pulse'
                           : 'bg-gray-200 border-gray-300 text-gray-400 scale-90'
                     }
                   `}

@@ -2,8 +2,8 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8 text-center">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-surface rounded-lg shadow-xl p-8 text-center">
         <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mx-auto mb-6">
           <svg
             className="w-8 h-8 text-blue-600"
@@ -30,7 +30,7 @@ export default function NotFound() {
 
         <Link
           href="/"
-          className="inline-block px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+          className="inline-block px-6 py-3 bg-primary-600 text-forest font-medium rounded-lg hover:bg-primary-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
         >
           Go Back Home
         </Link>

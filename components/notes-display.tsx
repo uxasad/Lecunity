@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { LectureNotes } from '@/types';
+import { downloadLectureNotesPdf } from '@/lib/pdf-export';
 import { MediaPlayer } from './media-player';
 
 interface NotesDisplayProps {
@@ -15,6 +16,8 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
   const [copied, setCopied] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   if (!notes) {
     return null;
@@ -52,6 +55,22 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsPdfLoading(true);
+    setPdfError(null);
+
+    try {
+      await downloadLectureNotesPdf(notes);
+    } catch (error) {
+      console.error('Failed to generate lecture notes PDF:', error);
+      setPdfError(
+        error instanceof Error ? error.message : 'Unable to generate the PDF. Please try again.',
+      );
+    } finally {
+      setIsPdfLoading(false);
+    }
   };
 
   const handleDownloadTranscript = () => {
@@ -252,7 +271,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-lg">
+    <div className="w-full max-w-4xl mx-auto bg-surface rounded-lg shadow-lg">
       <div className="p-6 border-b border-gray-200">
         <div className="flex justify-between items-start">
           <div>
@@ -265,19 +284,32 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             <button
+              onClick={handleDownloadPdf}
+              disabled={isPdfLoading}
+              aria-busy={isPdfLoading}
+              className="px-4 py-2 text-sm font-medium text-forest bg-primary-600 rounded-md hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+            >
+              {isPdfLoading ? 'Generating PDF…' : 'Download PDF'}
+            </button>
+            <button
               onClick={handleDownloadMarkdown}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
             >
               Download MD
             </button>
             <button
               onClick={handleDownload}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
+              className="px-4 py-2 text-sm font-medium text-forest bg-primary-600 rounded-md hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
             >
               Download JSON
             </button>
           </div>
         </div>
+        {pdfError && (
+          <p className="mt-3 text-sm text-red-600" role="alert" aria-live="polite">
+            {pdfError}
+          </p>
+        )}
       </div>
 
       {notes.metadata.sourceUrl && notes.metadata.sourceType && (
@@ -325,7 +357,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
         <div className="flex justify-end mb-4">
           <button
             onClick={handleCopyToClipboard}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
             {copied ? (
               <>
@@ -449,7 +481,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
           <div className="space-y-6">
             {notes.exampleProblems.length > 0 ? (
               notes.exampleProblems.map((problem, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-lg p-5 bg-white">
+                <div key={idx} className="border border-gray-200 rounded-lg p-5 bg-surface">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Problem {idx + 1}</h3>
                   <div className="space-y-4">
                     <div className="bg-blue-50 rounded-lg p-4">
@@ -518,7 +550,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
                   )}
                 </div>
                 {notes.quizQuestions.map((quiz, idx) => (
-                  <div key={idx} className="border border-gray-200 rounded-lg p-6 bg-white">
+                  <div key={idx} className="border border-gray-200 rounded-lg p-6 bg-surface">
                     <h4 className="text-md font-semibold text-gray-900 mb-4">Question {idx + 1}</h4>
                     <p className="text-gray-700 mb-4">{quiz.question}</p>
                     <div className="space-y-3">
@@ -544,7 +576,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
                                   ? 'bg-red-50 border-red-500'
                                   : isSelected
                                     ? 'bg-primary-50 border-primary-500'
-                                    : 'bg-white border-gray-300 hover:border-gray-400'
+                                    : 'bg-surface border-gray-300 hover:border-gray-400'
                             } ${showResults ? 'cursor-default' : 'cursor-pointer'}`}
                           >
                             <div className="flex items-start gap-3">
@@ -561,7 +593,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
                               >
                                 {(isSelected || showCorrect) && (
                                   <svg
-                                    className="w-4 h-4 text-white"
+                                    className="w-4 h-4 text-forest"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -620,7 +652,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
                     <button
                       onClick={() => setShowResults(true)}
                       disabled={Object.keys(selectedAnswers).length < notes.quizQuestions.length}
-                      className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                      className="px-6 py-3 bg-primary-600 text-forest rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
                     >
                       Submit Answers
                     </button>

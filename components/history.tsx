@@ -84,7 +84,7 @@ export default function History({ onSelectItem }: HistoryProps) {
 
   if (history.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+      <div className="bg-surface rounded-lg shadow-sm border border-gray-200 p-8 text-center">
         <div className="text-gray-400 mb-2">
           <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -102,7 +102,7 @@ export default function History({ onSelectItem }: HistoryProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-surface rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">
           History <span className="text-sm font-normal text-gray-500">({history.length})</span>
@@ -132,7 +132,7 @@ export default function History({ onSelectItem }: HistoryProps) {
             </button>
             <button
               onClick={() => setShowConfirmClear(false)}
-              className="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 bg-surface text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
             >
               Cancel
             </button>

@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-surface rounded-lg shadow-xl p-8">
         <div className="flex items-center justify-center mb-6">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary-600"></div>
         </div>
