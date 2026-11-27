@@ -44,19 +44,6 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
     });
   };
 
-  const handleDownload = () => {
-    const content = JSON.stringify(notes, null, 2);
-    const blob = new Blob([content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${notes.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_notes.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const handleDownloadPdf = async () => {
     setIsPdfLoading(true);
     setPdfError(null);
@@ -89,97 +76,6 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${notes.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_transcript.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleDownloadMarkdown = () => {
-    let markdown = `# ${notes.title}\n\n`;
-    markdown += `## Summary\n\n${notes.summary}\n\n`;
-
-    if (notes.paragraphs.length > 0) {
-      markdown += `## Detailed Notes\n\n`;
-      notes.paragraphs.forEach((para) => {
-        markdown += `${para}\n\n`;
-      });
-    }
-
-    if (notes.bulletPoints.length > 0) {
-      markdown += `## Key Points\n\n`;
-      notes.bulletPoints.forEach((point) => {
-        markdown += `- ${point}\n`;
-      });
-      markdown += '\n';
-    }
-
-    if (notes.keyConcepts.length > 0) {
-      markdown += `## Key Concepts\n\n`;
-      notes.keyConcepts.forEach((concept) => {
-        markdown += `### ${concept.concept}\n\n`;
-        markdown += `${concept.explanation}\n\n`;
-        markdown += `*Importance: ${concept.importance}*\n\n`;
-      });
-    }
-
-    if (notes.definitions.length > 0) {
-      markdown += `## Definitions\n\n`;
-      notes.definitions.forEach((def) => {
-        markdown += `**${def.term}**: ${def.definition}\n\n`;
-        if (def.context) {
-          markdown += `*Context: ${def.context}*\n\n`;
-        }
-      });
-    }
-
-    if (notes.exampleProblems.length > 0) {
-      markdown += `## Example Problems\n\n`;
-      notes.exampleProblems.forEach((problem, idx) => {
-        markdown += `### Problem ${idx + 1}\n\n`;
-        markdown += `${problem.problem}\n\n`;
-        if (problem.solution) {
-          markdown += `**Solution**: ${problem.solution}\n\n`;
-        }
-        if (problem.explanation) {
-          markdown += `${problem.explanation}\n\n`;
-        }
-      });
-    }
-
-    if (notes.quizQuestions && notes.quizQuestions.length > 0) {
-      markdown += `## Quiz Questions\n\n`;
-      notes.quizQuestions.forEach((quiz, idx) => {
-        markdown += `### Question ${idx + 1}\n\n`;
-        markdown += `${quiz.question}\n\n`;
-        quiz.options.forEach((option, optIdx) => {
-          const isCorrect = optIdx === quiz.correctAnswer;
-          markdown += `${String.fromCharCode(65 + optIdx)}. ${option}${isCorrect ? ' ✓' : ''}\n`;
-        });
-        markdown += '\n';
-        if (quiz.explanation) {
-          markdown += `**Explanation**: ${quiz.explanation}\n\n`;
-        }
-      });
-    }
-
-    if (notes.actionItems.length > 0) {
-      markdown += `## Action Items\n\n`;
-      notes.actionItems.forEach((item) => {
-        markdown += `- [ ] ${item}\n`;
-      });
-      markdown += '\n';
-    }
-
-    markdown += `---\n\n`;
-    markdown += `*Generated on ${formatDate(notes.metadata.generatedAt)}*\n`;
-    markdown += `*Source: ${notes.metadata.originalFilename}*\n`;
-
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${notes.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_notes.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -289,19 +185,7 @@ export function NotesDisplay({ notes }: NotesDisplayProps) {
               aria-busy={isPdfLoading}
               className="px-4 py-2 text-sm font-medium text-forest bg-primary-600 rounded-md hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
             >
-              {isPdfLoading ? 'Generating PDF…' : 'Download PDF'}
-            </button>
-            <button
-              onClick={handleDownloadMarkdown}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-            >
-              Download MD
-            </button>
-            <button
-              onClick={handleDownload}
-              className="px-4 py-2 text-sm font-medium text-forest bg-primary-600 rounded-md hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-            >
-              Download JSON
+              {isPdfLoading ? 'Generating PDF…' : 'Download as PDF'}
             </button>
           </div>
         </div>

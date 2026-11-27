@@ -7,7 +7,7 @@ const processingTips = [
   '🎵 Did you know? We automatically compress large files for better upload stability',
   '⚡ Pro tip: Use 48kbps bitrate for optimal transcription quality',
   '📊 Fun fact: The app transcribes and generates structured notes in one go',
-  '🔧 Tip: You can export your notes as JSON or Markdown when done',
+  '🔧 Tip: You can download your notes as a PDF when done',
   '🎯 Best practice: Keep videos under 25 minutes for faster processing',
   '✨ Magic: AI automatically identifies key concepts and action items',
   '🚀 Speed tip: Compress audio before upload: ffmpeg -i input.mp3 -b:a 48k output.mp3',
