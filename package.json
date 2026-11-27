@@ -74,6 +74,7 @@
     "@vitest/coverage-v8": "^4.0.17",
     "@vitest/ui": "^4.0.17",
     "autoprefixer": "^10.4.17",
+    "baseline-browser-mapping": "^2.11.39",
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.5.29",
     "jsdom": "^27.4.0",
@@ -86,8 +87,13 @@
     "vitest": "^4.0.17"
   },
   "engines": {
-    "node": ">=18.18.0",
+    "node": "22.x",
     "pnpm": ">=8.0.0"
   },
-  "packageManager": "pnpm@10.14.0"
+  "packageManager": "pnpm@10.14.0",
+  "pnpm": {
+    "overrides": {
+      "caniuse-lite": "1.0.30001828"
+    }
+  }
 }
